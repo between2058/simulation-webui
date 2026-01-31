@@ -97,6 +97,11 @@
   box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
 }
 
+/* === Full Width === */
+.btn--full-width {
+  width: 100%;
+}
+
 /* === Active State === */
 .btn--active {
   background: var(--color-accent-primary) !important;

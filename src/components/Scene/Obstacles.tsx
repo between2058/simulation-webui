@@ -1,15 +1,13 @@
 import { useRef, useEffect } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useSimulationStore } from '../../stores/simulationStore';
+import type { ObstacleData } from '../../stores/simulationStore';
 
-export interface ObstacleData {
-  id: string;
-  position: [number, number, number];
-  size: [number, number, number];
-  type: 'box' | 'cylinder';
-  color?: string;
-}
+// Re-export type for backward compatibility
+export type { ObstacleData };
 
-// Default obstacles for testing
+// Default obstacles (kept for backward compatibility)
 export const defaultObstacles: ObstacleData[] = [
   { id: 'obs1', position: [3, 0.5, 0], size: [1, 1, 1], type: 'box' },
   { id: 'obs2', position: [-3, 0.5, 2], size: [1.5, 1, 1.5], type: 'box' },
@@ -22,10 +20,13 @@ export const defaultObstacles: ObstacleData[] = [
 
 interface ObstacleProps {
   data: ObstacleData;
+  isSelected: boolean;
+  isEditMode: boolean;
+  onSelect: (id: string) => void;
   onBoundsReady?: (id: string, box: THREE.Box3) => void;
 }
 
-function Obstacle({ data, onBoundsReady }: ObstacleProps) {
+function Obstacle({ data, isSelected, isEditMode, onSelect, onBoundsReady }: ObstacleProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useEffect(() => {
@@ -35,40 +36,71 @@ function Obstacle({ data, onBoundsReady }: ObstacleProps) {
     }
   }, [data, onBoundsReady]);
 
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (isEditMode) {
+      e.stopPropagation();
+      onSelect(data.id);
+    }
+  };
+
+  const baseColor = data.color || '#1a2a4a';
+  const emissiveColor = isSelected ? '#00ff88' : '#00d4ff';
+  const emissiveIntensity = isSelected ? 0.3 : 0.05;
+
   const material = (
     <meshStandardMaterial
-      color={data.color || '#1a2a4a'}
+      color={isSelected ? '#2a4a6a' : baseColor}
       roughness={0.4}
       metalness={0.6}
-      emissive="#00d4ff"
-      emissiveIntensity={0.05}
+      emissive={emissiveColor}
+      emissiveIntensity={emissiveIntensity}
     />
   );
 
   if (data.type === 'cylinder') {
     return (
+      <group>
+        <mesh
+          ref={meshRef}
+          position={data.position}
+          castShadow
+          receiveShadow
+          onClick={handleClick}
+        >
+          <cylinderGeometry args={[data.size[0], data.size[0], data.size[1], 16]} />
+          {material}
+        </mesh>
+        {/* Selection outline */}
+        {isSelected && (
+          <mesh position={data.position}>
+            <cylinderGeometry args={[data.size[0] + 0.05, data.size[0] + 0.05, data.size[1] + 0.05, 16]} />
+            <meshBasicMaterial color="#00ff88" wireframe />
+          </mesh>
+        )}
+      </group>
+    );
+  }
+
+  return (
+    <group>
       <mesh
         ref={meshRef}
         position={data.position}
         castShadow
         receiveShadow
+        onClick={handleClick}
       >
-        <cylinderGeometry args={[data.size[0], data.size[0], data.size[1], 16]} />
+        <boxGeometry args={data.size} />
         {material}
       </mesh>
-    );
-  }
-
-  return (
-    <mesh
-      ref={meshRef}
-      position={data.position}
-      castShadow
-      receiveShadow
-    >
-      <boxGeometry args={data.size} />
-      {material}
-    </mesh>
+      {/* Selection outline */}
+      {isSelected && (
+        <mesh position={data.position}>
+          <boxGeometry args={[data.size[0] + 0.05, data.size[1] + 0.05, data.size[2] + 0.05]} />
+          <meshBasicMaterial color="#00ff88" wireframe />
+        </mesh>
+      )}
+    </group>
   );
 }
 
@@ -77,8 +109,18 @@ interface ObstaclesProps {
   onObstaclesReady?: (bounds: Map<string, THREE.Box3>) => void;
 }
 
-export function Obstacles({ obstacles = defaultObstacles, onObstaclesReady }: ObstaclesProps) {
+export function Obstacles({ obstacles: propObstacles, onObstaclesReady }: ObstaclesProps) {
+  const {
+    obstacles: storeObstacles,
+    selectedObstacleId,
+    setSelectedObstacleId,
+    editorMode
+  } = useSimulationStore();
+
+  // Use prop obstacles if provided (backward compatibility), otherwise use store
+  const obstacles = propObstacles || storeObstacles;
   const boundsRef = useRef<Map<string, THREE.Box3>>(new Map());
+  const isEditMode = editorMode === 'edit';
 
   const handleBoundsReady = (id: string, box: THREE.Box3) => {
     boundsRef.current.set(id, box);
@@ -88,10 +130,21 @@ export function Obstacles({ obstacles = defaultObstacles, onObstaclesReady }: Ob
     }
   };
 
+  const handleSelect = (id: string) => {
+    setSelectedObstacleId(selectedObstacleId === id ? null : id);
+  };
+
   return (
     <group name="obstacles">
       {obstacles.map((obs) => (
-        <Obstacle key={obs.id} data={obs} onBoundsReady={handleBoundsReady} />
+        <Obstacle
+          key={obs.id}
+          data={obs}
+          isSelected={selectedObstacleId === obs.id}
+          isEditMode={isEditMode}
+          onSelect={handleSelect}
+          onBoundsReady={handleBoundsReady}
+        />
       ))}
 
       {/* Boundary walls */}

@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useState, Suspense } from 'react';
+import React, { useRef, useEffect, useState, Suspense, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSimulationStore } from '../../stores/simulationStore';
 import { useKeyboardControls } from '../../utils/useKeyboardControls';
 import { Go2Model } from './Go2Model';
-import { defaultObstacles, getObstacleBounds } from '../Scene/Obstacles';
+import { getObstacleBounds } from '../Scene/Obstacles';
 
 // Placeholder robot while model loads
 function PlaceholderRobot() {
@@ -116,9 +116,11 @@ export function RobotDog({ path }: RobotDogProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [useDetailedModel] = useState(true);
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
-  const obstaclesRef = useRef<THREE.Box3[]>(getObstacleBounds(defaultObstacles));
-  const { setRobotLoaded, setRobotPosition, setRobotRotation, simulationState } = useSimulationStore();
+  const { setRobotLoaded, setRobotPosition, setRobotRotation, simulationState, obstacles } = useSimulationStore();
   const movement = useKeyboardControls();
+
+  // Compute obstacle bounds from store obstacles
+  const obstacleBounds = useMemo(() => getObstacleBounds(obstacles), [obstacles]);
 
   // Robot collision box dimensions
   const robotRadius = 0.4;
@@ -139,7 +141,7 @@ export function RobotDog({ path }: RobotDogProps) {
       new THREE.Vector3(newPos.x + robotRadius, 0.8, newPos.z + robotRadius)
     );
 
-    for (const obstacle of obstaclesRef.current) {
+    for (const obstacle of obstacleBounds) {
       if (robotBox.intersectsBox(obstacle)) {
         return true;
       }

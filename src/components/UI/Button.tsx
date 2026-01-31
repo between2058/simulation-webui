@@ -9,6 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   iconPosition?: 'left' | 'right';
   loading?: boolean;
   active?: boolean;
+  fullWidth?: boolean;
 }
 
 export function Button({
@@ -19,13 +20,14 @@ export function Button({
   iconPosition = 'left',
   loading = false,
   active = false,
+  fullWidth = false,
   className = '',
   disabled,
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={`btn btn--${variant} btn--${size} ${active ? 'btn--active' : ''} ${className}`}
+      className={`btn btn--${variant} btn--${size} ${active ? 'btn--active' : ''} ${fullWidth ? 'btn--full-width' : ''} ${className}`}
       disabled={disabled || loading}
       {...props}
     >

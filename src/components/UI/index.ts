@@ -4,3 +4,4 @@ export { Header } from './Header';
 export { ControlPanel } from './ControlPanel';
 export { StatusBar } from './StatusBar';
 export { ScenePanel } from './ScenePanel';
+export { SceneEditor } from './SceneEditor';

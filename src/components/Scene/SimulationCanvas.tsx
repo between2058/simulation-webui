@@ -12,7 +12,7 @@ import { useSimulationStore } from '../../stores/simulationStore';
 import { SceneEnvironment } from './SceneEnvironment';
 import { RobotDog } from '../RobotDog/RobotDog';
 import { CameraController } from '../Camera/CameraController';
-import { Obstacles, defaultObstacles, getObstacleBounds } from './Obstacles';
+import { Obstacles, getObstacleBounds } from './Obstacles';
 import { PathVisualization } from './PathVisualization';
 import { createPathfindingGrid, findPath, type PathfindingGrid } from '../../utils/pathfinding';
 import './SimulationCanvas.css';
@@ -26,45 +26,62 @@ function LoadingFallback() {
   );
 }
 
-// Click handler for setting target
+// Click handler for setting target and placing obstacles
 interface GroundClickHandlerProps {
   onTargetSet: (position: THREE.Vector3) => void;
+  onPlaceObstacle: (position: THREE.Vector3) => void;
 }
 
-function GroundClickHandler({ onTargetSet }: GroundClickHandlerProps) {
+function GroundClickHandler({ onTargetSet, onPlaceObstacle }: GroundClickHandlerProps) {
   const { camera, gl } = useThree();
-  const { simulationState } = useSimulationStore();
+  const { simulationState, editorMode } = useSimulationStore();
   const planeRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
   const raycaster = useRef(new THREE.Raycaster());
 
+  const getGroundPosition = useCallback((event: MouseEvent): THREE.Vector3 | null => {
+    const rect = gl.domElement.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
+
+    const intersectPoint = new THREE.Vector3();
+    if (raycaster.current.ray.intersectPlane(planeRef.current, intersectPoint)) {
+      const bounds = 9.5;
+      intersectPoint.x = Math.max(-bounds, Math.min(bounds, intersectPoint.x));
+      intersectPoint.z = Math.max(-bounds, Math.min(bounds, intersectPoint.z));
+      intersectPoint.y = 0;
+      return intersectPoint;
+    }
+    return null;
+  }, [camera, gl]);
+
   useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
-      if (simulationState !== 'running') return;
-
-      // Get normalized device coordinates
-      const rect = gl.domElement.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      // Set up raycaster
-      raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
-
-      // Intersect with ground plane
-      const intersectPoint = new THREE.Vector3();
-      if (raycaster.current.ray.intersectPlane(planeRef.current, intersectPoint)) {
-        // Clamp to grid bounds
-        const bounds = 9.5;
-        intersectPoint.x = Math.max(-bounds, Math.min(bounds, intersectPoint.x));
-        intersectPoint.z = Math.max(-bounds, Math.min(bounds, intersectPoint.z));
-        intersectPoint.y = 0;
-
-        onTargetSet(intersectPoint);
+    // Double-click for target in simulation mode
+    const handleDoubleClick = (event: MouseEvent) => {
+      if (simulationState !== 'running' || editorMode !== 'simulate') return;
+      const position = getGroundPosition(event);
+      if (position) {
+        onTargetSet(position);
       }
     };
 
-    gl.domElement.addEventListener('dblclick', handleClick);
-    return () => gl.domElement.removeEventListener('dblclick', handleClick);
-  }, [camera, gl, onTargetSet, simulationState]);
+    // Single click for obstacle placement in edit mode
+    const handleClick = (event: MouseEvent) => {
+      if (editorMode !== 'edit') return;
+      const position = getGroundPosition(event);
+      if (position) {
+        onPlaceObstacle(position);
+      }
+    };
+
+    gl.domElement.addEventListener('dblclick', handleDoubleClick);
+    gl.domElement.addEventListener('click', handleClick);
+    return () => {
+      gl.domElement.removeEventListener('dblclick', handleDoubleClick);
+      gl.domElement.removeEventListener('click', handleClick);
+    };
+  }, [camera, gl, onTargetSet, onPlaceObstacle, simulationState, editorMode, getGroundPosition]);
 
   return null;
 }
@@ -73,9 +90,10 @@ interface SceneContentProps {
   targetPosition: THREE.Vector3 | null;
   path: THREE.Vector3[] | null;
   onTargetSet: (position: THREE.Vector3) => void;
+  onPlaceObstacle: (position: THREE.Vector3) => void;
 }
 
-function SceneContent({ targetPosition, path, onTargetSet }: SceneContentProps) {
+function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle }: SceneContentProps) {
   const { showGrid, showStats, cameraMode, controlsEnabled } = useSimulationStore();
 
   return (
@@ -99,8 +117,8 @@ function SceneContent({ targetPosition, path, onTargetSet }: SceneContentProps) 
       <Environment preset="night" />
       <SceneEnvironment />
 
-      {/* Obstacles */}
-      <Obstacles obstacles={defaultObstacles} />
+      {/* Obstacles - uses store when no props provided */}
+      <Obstacles />
 
       {/* Path Visualization */}
       <PathVisualization path={path} targetPosition={targetPosition} />
@@ -131,8 +149,8 @@ function SceneContent({ targetPosition, path, onTargetSet }: SceneContentProps) 
       {/* Camera Controller */}
       <CameraController />
 
-      {/* Click handler for target */}
-      <GroundClickHandler onTargetSet={onTargetSet} />
+      {/* Click handler for target and obstacle placement */}
+      <GroundClickHandler onTargetSet={onTargetSet} onPlaceObstacle={onPlaceObstacle} />
 
       {/* Orbit Controls (when in orbit mode) */}
       {cameraMode === 'orbit' && controlsEnabled && (
@@ -157,15 +175,25 @@ export function SimulationCanvas() {
   const [targetPosition, setTargetPosition] = useState<THREE.Vector3 | null>(null);
   const [path, setPath] = useState<THREE.Vector3[] | null>(null);
   const [grid, setGrid] = useState<PathfindingGrid | null>(null);
-  const { robot, togglePathfinding } = useSimulationStore();
+  const {
+    robot,
+    togglePathfinding,
+    obstacles,
+    addObstacle,
+    placementType,
+    editorMode,
+    setSelectedObstacleId
+  } = useSimulationStore();
 
-  // Initialize pathfinding grid
+  // Initialize pathfinding grid and update when obstacles change
   useEffect(() => {
-    const obstacles = getObstacleBounds(defaultObstacles);
-    const newGrid = createPathfindingGrid(obstacles, 20, 0.5, 0.4);
+    const obstacleBounds = getObstacleBounds(obstacles);
+    const newGrid = createPathfindingGrid(obstacleBounds, 20, 0.5, 0.4);
     setGrid(newGrid);
+  }, [obstacles]);
 
-    // Enable pathfinding visualization by default
+  // Enable pathfinding visualization on mount
+  useEffect(() => {
     togglePathfinding();
   }, []);
 
@@ -187,6 +215,26 @@ export function SimulationCanvas() {
       setPath(null);
     }
   }, [grid, robot.position]);
+
+  // Place obstacle in edit mode
+  const handlePlaceObstacle = useCallback((position: THREE.Vector3) => {
+    if (editorMode !== 'edit') return;
+
+    const newId = `obs_${Date.now()}`;
+    const size: [number, number, number] = placementType === 'box'
+      ? [1, 1, 1]
+      : [0.5, 1.5, 0.5];
+    const yPos = placementType === 'box' ? 0.5 : 0.75;
+
+    addObstacle({
+      id: newId,
+      position: [position.x, yPos, position.z],
+      size,
+      type: placementType,
+    });
+
+    setSelectedObstacleId(newId);
+  }, [editorMode, placementType, addObstacle, setSelectedObstacleId]);
 
   return (
     <div className="simulation-canvas">
@@ -210,6 +258,7 @@ export function SimulationCanvas() {
             targetPosition={targetPosition}
             path={path}
             onTargetSet={handleTargetSet}
+            onPlaceObstacle={handlePlaceObstacle}
           />
         </Suspense>
       </Canvas>
@@ -222,7 +271,9 @@ export function SimulationCanvas() {
 
       {/* Instructions overlay */}
       <div className="canvas-instructions">
-        Double-click to set target
+        {editorMode === 'edit'
+          ? 'Click to place obstacle • Click obstacle to select'
+          : 'Double-click to set target'}
       </div>
     </div>
   );

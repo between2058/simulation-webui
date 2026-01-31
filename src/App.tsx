@@ -1,4 +1,4 @@
-import { Header, ControlPanel, StatusBar, ScenePanel } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import './styles/global.css';
 
@@ -20,6 +20,9 @@ function App() {
 
         {/* Scene Panel (Left) */}
         <ScenePanel onSceneLoad={handleSceneLoad} />
+
+        {/* Scene Editor (Bottom Left) */}
+        <SceneEditor />
 
         {/* Control Panel (Right) */}
         <ControlPanel />
