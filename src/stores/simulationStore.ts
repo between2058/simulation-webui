@@ -31,6 +31,15 @@ export interface MissionStats {
   isRecording: boolean;
 }
 
+// Terrain zone
+export interface TerrainZoneData {
+  id: string;
+  position: [number, number, number];
+  radius: number;
+  type: TerrainType;
+  speedMultiplier: number; // 0.0 - 1.0
+}
+
 export interface ObstacleData {
   id: string;
   position: [number, number, number];
@@ -110,6 +119,14 @@ interface SimulationStore {
   incrementCollision: () => void;
   incrementWaypointReached: () => void;
   addDistance: (distance: number) => void;
+
+  // Terrain Zones
+  terrainZones: TerrainZoneData[];
+  selectedTerrainId: string | null;
+  setSelectedTerrainId: (id: string | null) => void;
+  addTerrainZone: (zone: TerrainZoneData) => void;
+  removeTerrainZone: (id: string) => void;
+  clearTerrainZones: () => void;
 
   // Scene Import/Export
   exportScene: () => string;
@@ -285,14 +302,32 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
       },
     })),
 
+  // Terrain Zones - default zones for demo
+  terrainZones: [
+    { id: 'terrain1', position: [4, 0, 4], radius: 2, type: 'rough' as TerrainType, speedMultiplier: 0.6 },
+    { id: 'terrain2', position: [-4, 0, -4], radius: 1.5, type: 'slippery' as TerrainType, speedMultiplier: 1.3 },
+    { id: 'terrain3', position: [0, 0, 6], radius: 2.5, type: 'slow' as TerrainType, speedMultiplier: 0.4 },
+  ],
+  selectedTerrainId: null,
+  setSelectedTerrainId: (id) => set({ selectedTerrainId: id }),
+  addTerrainZone: (zone) =>
+    set((state) => ({ terrainZones: [...state.terrainZones, zone] })),
+  removeTerrainZone: (id) =>
+    set((state) => ({
+      terrainZones: state.terrainZones.filter((z) => z.id !== id),
+      selectedTerrainId: state.selectedTerrainId === id ? null : state.selectedTerrainId,
+    })),
+  clearTerrainZones: () => set({ terrainZones: [], selectedTerrainId: null }),
+
   // Scene Import/Export
   exportScene: (): string => {
     const currentState = useSimulationStore.getState() as SimulationStore;
-    const sceneData: { version: string; obstacles: ObstacleData[]; waypoints: WaypointData[]; patrolLoop: boolean } = {
+    const sceneData: { version: string; obstacles: ObstacleData[]; waypoints: WaypointData[]; patrolLoop: boolean; terrainZones: TerrainZoneData[] } = {
       version: '1.0',
       obstacles: currentState.obstacles,
       waypoints: currentState.waypoints,
       patrolLoop: currentState.patrolLoop,
+      terrainZones: currentState.terrainZones,
     };
     return JSON.stringify(sceneData, null, 2);
   },
@@ -304,6 +339,7 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
           obstacles: data.obstacles || [],
           waypoints: data.waypoints || [],
           patrolLoop: data.patrolLoop ?? true,
+          terrainZones: data.terrainZones || [],
           currentWaypointIndex: 0,
         });
         return true;

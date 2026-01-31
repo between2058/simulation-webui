@@ -15,6 +15,7 @@ import { CameraController } from '../Camera/CameraController';
 import { Obstacles, getObstacleBounds } from './Obstacles';
 import { PathVisualization } from './PathVisualization';
 import { Waypoints } from './Waypoints';
+import { TerrainZones } from './TerrainZones';
 import { LidarSensor } from '../Sensors/LidarSensor';
 import { createPathfindingGrid, findPath, type PathfindingGrid } from '../../utils/pathfinding';
 import './SimulationCanvas.css';
@@ -123,6 +124,9 @@ function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle, onAd
       {/* Environment */}
       <Environment preset="night" />
       <SceneEnvironment />
+
+      {/* Terrain Zones - render under obstacles */}
+      <TerrainZones />
 
       {/* Obstacles - uses store when no props provided */}
       <Obstacles />
