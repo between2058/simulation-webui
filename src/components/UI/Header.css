@@ -1,0 +1,124 @@
+/* ============================================
+   Sci-Fi Header Component
+   ============================================ */
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--gradient-panel);
+  border-bottom: 1px solid var(--color-border-secondary);
+  z-index: var(--z-panel);
+}
+
+/* === Brand === */
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.header__logo {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-accent-primary);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.header__logo svg {
+  width: 22px;
+  height: 22px;
+}
+
+.header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header__title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.header__subtitle {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* === Status Indicators === */
+.header__status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.header__status-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition: all var(--transition-normal);
+}
+
+.header__status-dot--active {
+  background: var(--color-neon-green);
+  box-shadow: 0 0 8px var(--color-neon-green);
+}
+
+.header__status-dot--warning {
+  background: var(--color-neon-orange);
+  box-shadow: 0 0 8px var(--color-neon-orange);
+}
+
+.header__status-dot--error {
+  background: var(--color-neon-red);
+  box-shadow: 0 0 8px var(--color-neon-red);
+  animation: flicker 1s ease-in-out infinite;
+}
+
+.header__status-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+/* === Bottom Line Decoration === */
+.header__line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent-tertiary) 20%,
+    var(--color-accent-primary) 50%,
+    var(--color-accent-tertiary) 80%,
+    transparent
+  );
+}
