@@ -1,4 +1,4 @@
-import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import './styles/global.css';
 
@@ -23,6 +23,12 @@ function App() {
 
         {/* Scene Editor (Bottom Left) */}
         <SceneEditor />
+
+        {/* Patrol Controls (Left Middle) */}
+        <div className="patrol-panel">
+          <PatrolControls />
+          <MissionStats />
+        </div>
 
         {/* Control Panel (Right) */}
         <ControlPanel />

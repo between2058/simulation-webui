@@ -136,7 +136,7 @@ export function Obstacles({ obstacles: propObstacles, onObstaclesReady }: Obstac
 
   return (
     <group name="obstacles">
-      {obstacles.map((obs) => (
+      {obstacles.map((obs: ObstacleData) => (
         <Obstacle
           key={obs.id}
           data={obs}

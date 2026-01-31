@@ -14,6 +14,7 @@ import { RobotDog } from '../RobotDog/RobotDog';
 import { CameraController } from '../Camera/CameraController';
 import { Obstacles, getObstacleBounds } from './Obstacles';
 import { PathVisualization } from './PathVisualization';
+import { Waypoints } from './Waypoints';
 import { createPathfindingGrid, findPath, type PathfindingGrid } from '../../utils/pathfinding';
 import './SimulationCanvas.css';
 
@@ -26,13 +27,14 @@ function LoadingFallback() {
   );
 }
 
-// Click handler for setting target and placing obstacles
+// Click handler for setting target, placing obstacles, and adding waypoints
 interface GroundClickHandlerProps {
   onTargetSet: (position: THREE.Vector3) => void;
   onPlaceObstacle: (position: THREE.Vector3) => void;
+  onAddWaypoint: (position: THREE.Vector3) => void;
 }
 
-function GroundClickHandler({ onTargetSet, onPlaceObstacle }: GroundClickHandlerProps) {
+function GroundClickHandler({ onTargetSet, onPlaceObstacle, onAddWaypoint }: GroundClickHandlerProps) {
   const { camera, gl } = useThree();
   const { simulationState, editorMode } = useSimulationStore();
   const planeRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
@@ -66,12 +68,15 @@ function GroundClickHandler({ onTargetSet, onPlaceObstacle }: GroundClickHandler
       }
     };
 
-    // Single click for obstacle placement in edit mode
+    // Single click for obstacle placement in edit mode or waypoint in patrol mode
     const handleClick = (event: MouseEvent) => {
-      if (editorMode !== 'edit') return;
       const position = getGroundPosition(event);
-      if (position) {
+      if (!position) return;
+
+      if (editorMode === 'edit') {
         onPlaceObstacle(position);
+      } else if (editorMode === 'patrol') {
+        onAddWaypoint(position);
       }
     };
 
@@ -81,7 +86,7 @@ function GroundClickHandler({ onTargetSet, onPlaceObstacle }: GroundClickHandler
       gl.domElement.removeEventListener('dblclick', handleDoubleClick);
       gl.domElement.removeEventListener('click', handleClick);
     };
-  }, [camera, gl, onTargetSet, onPlaceObstacle, simulationState, editorMode, getGroundPosition]);
+  }, [camera, gl, onTargetSet, onPlaceObstacle, onAddWaypoint, simulationState, editorMode, getGroundPosition]);
 
   return null;
 }
@@ -91,9 +96,10 @@ interface SceneContentProps {
   path: THREE.Vector3[] | null;
   onTargetSet: (position: THREE.Vector3) => void;
   onPlaceObstacle: (position: THREE.Vector3) => void;
+  onAddWaypoint: (position: THREE.Vector3) => void;
 }
 
-function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle }: SceneContentProps) {
+function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle, onAddWaypoint }: SceneContentProps) {
   const { showGrid, showStats, cameraMode, controlsEnabled } = useSimulationStore();
 
   return (
@@ -123,6 +129,9 @@ function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle }: Sc
       {/* Path Visualization */}
       <PathVisualization path={path} targetPosition={targetPosition} />
 
+      {/* Waypoints */}
+      <Waypoints />
+
       {/* Grid */}
       {showGrid && (
         <DreiGrid
@@ -149,8 +158,8 @@ function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle }: Sc
       {/* Camera Controller */}
       <CameraController />
 
-      {/* Click handler for target and obstacle placement */}
-      <GroundClickHandler onTargetSet={onTargetSet} onPlaceObstacle={onPlaceObstacle} />
+      {/* Click handler for target, obstacle placement, and waypoints */}
+      <GroundClickHandler onTargetSet={onTargetSet} onPlaceObstacle={onPlaceObstacle} onAddWaypoint={onAddWaypoint} />
 
       {/* Orbit Controls (when in orbit mode) */}
       {cameraMode === 'orbit' && controlsEnabled && (
@@ -182,7 +191,8 @@ export function SimulationCanvas() {
     addObstacle,
     placementType,
     editorMode,
-    setSelectedObstacleId
+    setSelectedObstacleId,
+    addWaypoint
   } = useSimulationStore();
 
   // Initialize pathfinding grid and update when obstacles change
@@ -236,6 +246,17 @@ export function SimulationCanvas() {
     setSelectedObstacleId(newId);
   }, [editorMode, placementType, addObstacle, setSelectedObstacleId]);
 
+  // Add waypoint in patrol mode
+  const handleAddWaypoint = useCallback((position: THREE.Vector3) => {
+    if (editorMode !== 'patrol') return;
+
+    const newId = `wp_${Date.now()}`;
+    addWaypoint({
+      id: newId,
+      position: [position.x, 0, position.z],
+    });
+  }, [editorMode, addWaypoint]);
+
   return (
     <div className="simulation-canvas">
       <Canvas
@@ -259,6 +280,7 @@ export function SimulationCanvas() {
             path={path}
             onTargetSet={handleTargetSet}
             onPlaceObstacle={handlePlaceObstacle}
+            onAddWaypoint={handleAddWaypoint}
           />
         </Suspense>
       </Canvas>
@@ -273,6 +295,8 @@ export function SimulationCanvas() {
       <div className="canvas-instructions">
         {editorMode === 'edit'
           ? 'Click to place obstacle • Click obstacle to select'
+          : editorMode === 'patrol'
+          ? 'Click to add waypoint • Click waypoint to remove'
           : 'Double-click to set target'}
       </div>
     </div>

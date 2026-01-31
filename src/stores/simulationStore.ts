@@ -3,14 +3,32 @@ import * as THREE from 'three';
 
 export type CameraMode = 'orbit' | 'first-person' | 'follow';
 export type SimulationState = 'idle' | 'running' | 'paused';
-export type EditorMode = 'simulate' | 'edit';
+export type EditorMode = 'simulate' | 'edit' | 'patrol';
 export type ObstacleType = 'box' | 'cylinder';
+export type TerrainType = 'normal' | 'rough' | 'slippery' | 'slow';
 
 interface RobotState {
   position: THREE.Vector3;
   rotation: THREE.Euler;
   velocity: THREE.Vector3;
   isLoaded: boolean;
+}
+
+// Waypoint for patrol mode
+export interface WaypointData {
+  id: string;
+  position: [number, number, number];
+  waitTime?: number; // seconds to wait at waypoint
+}
+
+// Mission statistics
+export interface MissionStats {
+  distanceTraveled: number;
+  timeElapsed: number;
+  collisionCount: number;
+  waypointsReached: number;
+  startTime: number | null;
+  isRecording: boolean;
 }
 
 export interface ObstacleData {
@@ -70,6 +88,30 @@ interface SimulationStore {
   removeObstacle: (id: string) => void;
   updateObstacle: (id: string, updates: Partial<ObstacleData>) => void;
   resetObstacles: () => void;
+
+  // Patrol / Waypoints
+  waypoints: WaypointData[];
+  currentWaypointIndex: number;
+  patrolLoop: boolean;
+  addWaypoint: (waypoint: WaypointData) => void;
+  removeWaypoint: (id: string) => void;
+  clearWaypoints: () => void;
+  setCurrentWaypointIndex: (index: number) => void;
+  setPatrolLoop: (loop: boolean) => void;
+
+  // Mission Statistics
+  missionStats: MissionStats;
+  startMission: () => void;
+  stopMission: () => void;
+  updateMissionStats: (updates: Partial<MissionStats>) => void;
+  resetMissionStats: () => void;
+  incrementCollision: () => void;
+  incrementWaypointReached: () => void;
+  addDistance: (distance: number) => void;
+
+  // Scene Import/Export
+  exportScene: () => string;
+  importScene: (json: string) => boolean;
 }
 
 export const useSimulationStore = create<SimulationStore>((set) => ({
@@ -159,4 +201,112 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
       ],
       selectedObstacleId: null,
     }),
+
+  // Patrol / Waypoints
+  waypoints: [],
+  currentWaypointIndex: 0,
+  patrolLoop: true,
+  addWaypoint: (waypoint) =>
+    set((state) => ({ waypoints: [...state.waypoints, waypoint] })),
+  removeWaypoint: (id) =>
+    set((state) => ({
+      waypoints: state.waypoints.filter((w) => w.id !== id),
+      currentWaypointIndex: Math.min(state.currentWaypointIndex, Math.max(0, state.waypoints.length - 2)),
+    })),
+  clearWaypoints: () => set({ waypoints: [], currentWaypointIndex: 0 }),
+  setCurrentWaypointIndex: (index) => set({ currentWaypointIndex: index }),
+  setPatrolLoop: (loop) => set({ patrolLoop: loop }),
+
+  // Mission Statistics
+  missionStats: {
+    distanceTraveled: 0,
+    timeElapsed: 0,
+    collisionCount: 0,
+    waypointsReached: 0,
+    startTime: null,
+    isRecording: false,
+  },
+  startMission: () =>
+    set((state) => ({
+      missionStats: {
+        ...state.missionStats,
+        startTime: Date.now(),
+        isRecording: true,
+      },
+    })),
+  stopMission: () =>
+    set((state) => ({
+      missionStats: {
+        ...state.missionStats,
+        isRecording: false,
+        timeElapsed: state.missionStats.startTime
+          ? (Date.now() - state.missionStats.startTime) / 1000
+          : state.missionStats.timeElapsed,
+      },
+    })),
+  updateMissionStats: (updates) =>
+    set((state) => ({
+      missionStats: { ...state.missionStats, ...updates },
+    })),
+  resetMissionStats: () =>
+    set({
+      missionStats: {
+        distanceTraveled: 0,
+        timeElapsed: 0,
+        collisionCount: 0,
+        waypointsReached: 0,
+        startTime: null,
+        isRecording: false,
+      },
+    }),
+  incrementCollision: () =>
+    set((state) => ({
+      missionStats: {
+        ...state.missionStats,
+        collisionCount: state.missionStats.collisionCount + 1,
+      },
+    })),
+  incrementWaypointReached: () =>
+    set((state) => ({
+      missionStats: {
+        ...state.missionStats,
+        waypointsReached: state.missionStats.waypointsReached + 1,
+      },
+    })),
+  addDistance: (distance) =>
+    set((state) => ({
+      missionStats: {
+        ...state.missionStats,
+        distanceTraveled: state.missionStats.distanceTraveled + distance,
+      },
+    })),
+
+  // Scene Import/Export
+  exportScene: (): string => {
+    const currentState = useSimulationStore.getState() as SimulationStore;
+    const sceneData: { version: string; obstacles: ObstacleData[]; waypoints: WaypointData[]; patrolLoop: boolean } = {
+      version: '1.0',
+      obstacles: currentState.obstacles,
+      waypoints: currentState.waypoints,
+      patrolLoop: currentState.patrolLoop,
+    };
+    return JSON.stringify(sceneData, null, 2);
+  },
+  importScene: (json) => {
+    try {
+      const data = JSON.parse(json);
+      if (data.version && data.obstacles) {
+        set({
+          obstacles: data.obstacles || [],
+          waypoints: data.waypoints || [],
+          patrolLoop: data.patrolLoop ?? true,
+          currentWaypointIndex: 0,
+        });
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  },
 }));

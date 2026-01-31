@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Panel } from './Panel';
 import { Button } from './Button';
 import { useSimulationStore } from '../../stores/simulationStore';
-import type { ObstacleType } from '../../stores/simulationStore';
+import type { ObstacleType, ObstacleData } from '../../stores/simulationStore';
 import './SceneEditor.css';
 
 // Icons
@@ -73,7 +73,7 @@ export function SceneEditor() {
     setSelectedObstacleId(null);
   };
 
-  const selectedObstacle = obstacles.find((o) => o.id === selectedObstacleId);
+  const selectedObstacle = obstacles.find((o: ObstacleData) => o.id === selectedObstacleId);
 
   return (
     <Panel title="Scene Editor" position="bottom-left" className="scene-editor">
@@ -133,7 +133,7 @@ export function SceneEditor() {
               OBSTACLES ({obstacles.length})
             </div>
             <div className="obstacle-list">
-              {obstacles.map((obs) => (
+              {obstacles.map((obs: ObstacleData) => (
                 <div
                   key={obs.id}
                   className={`obstacle-item ${selectedObstacleId === obs.id ? 'obstacle-item--selected' : ''}`}
