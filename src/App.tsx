@@ -1,4 +1,4 @@
-import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls, PathRecorder } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import { LidarDisplay } from './components/Sensors/LidarSensor';
 import './styles/global.css';
@@ -29,6 +29,7 @@ function App() {
         <div className="patrol-panel">
           <PatrolControls />
           <MissionStats />
+          <PathRecorder />
           <LidarDisplay />
         </div>
 

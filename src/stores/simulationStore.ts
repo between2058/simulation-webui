@@ -40,6 +40,13 @@ export interface TerrainZoneData {
   speedMultiplier: number; // 0.0 - 1.0
 }
 
+// Path recording point
+export interface PathPoint {
+  position: [number, number, number];
+  rotation: number;
+  timestamp: number;
+}
+
 export interface ObstacleData {
   id: string;
   position: [number, number, number];
@@ -127,6 +134,19 @@ interface SimulationStore {
   addTerrainZone: (zone: TerrainZoneData) => void;
   removeTerrainZone: (id: string) => void;
   clearTerrainZones: () => void;
+
+  // Path Recording
+  pathRecording: PathPoint[];
+  isRecordingPath: boolean;
+  isPlayingPath: boolean;
+  playbackIndex: number;
+  addPathPoint: (point: PathPoint) => void;
+  startPathRecording: () => void;
+  stopPathRecording: () => void;
+  startPathPlayback: () => void;
+  stopPathPlayback: () => void;
+  setPlaybackIndex: (index: number) => void;
+  clearPathRecording: () => void;
 
   // Scene Import/Export
   exportScene: () => string;
@@ -318,6 +338,20 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
       selectedTerrainId: state.selectedTerrainId === id ? null : state.selectedTerrainId,
     })),
   clearTerrainZones: () => set({ terrainZones: [], selectedTerrainId: null }),
+
+  // Path Recording
+  pathRecording: [],
+  isRecordingPath: false,
+  isPlayingPath: false,
+  playbackIndex: 0,
+  addPathPoint: (point) =>
+    set((state) => ({ pathRecording: [...state.pathRecording, point] })),
+  startPathRecording: () => set({ isRecordingPath: true, isPlayingPath: false }),
+  stopPathRecording: () => set({ isRecordingPath: false }),
+  startPathPlayback: () => set({ isPlayingPath: true, isRecordingPath: false, playbackIndex: 0 }),
+  stopPathPlayback: () => set({ isPlayingPath: false }),
+  setPlaybackIndex: (index) => set({ playbackIndex: index }),
+  clearPathRecording: () => set({ pathRecording: [], playbackIndex: 0 }),
 
   // Scene Import/Export
   exportScene: (): string => {

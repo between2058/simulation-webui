@@ -7,3 +7,4 @@ export { ScenePanel } from './ScenePanel';
 export { SceneEditor } from './SceneEditor';
 export { MissionStats } from './MissionStats';
 export { PatrolControls } from './PatrolControls';
+export { PathRecorder } from './PathRecorder';
