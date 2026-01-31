@@ -1,8 +1,9 @@
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSimulationStore } from '../../stores/simulationStore';
 import { useKeyboardControls } from '../../utils/useKeyboardControls';
+import { Go2Model } from './Go2Model';
 
 // Placeholder robot while model loads
 function PlaceholderRobot() {
@@ -90,17 +91,67 @@ function PlaceholderRobot() {
   );
 }
 
+// Loading indicator
+function LoadingRobot() {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y = state.clock.elapsedTime * 2;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={[0, 0.5, 0]}>
+      <octahedronGeometry args={[0.2, 0]} />
+      <meshStandardMaterial
+        color="#00d4ff"
+        emissive="#00d4ff"
+        emissiveIntensity={1}
+        wireframe
+      />
+    </mesh>
+  );
+}
+
+// Error boundary fallback
+function Go2ModelWithFallback() {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return <PlaceholderRobot />;
+  }
+
+  return (
+    <ErrorBoundary onError={() => setHasError(true)}>
+      <Suspense fallback={<LoadingRobot />}>
+        <Go2Model />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+// Simple error boundary component
+class ErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  onError: () => void;
+}> {
+  componentDidCatch() {
+    this.props.onError();
+  }
+
+  render() {
+    return this.props.children;
+  }
+}
+
 export function RobotDog() {
   const groupRef = useRef<THREE.Group>(null);
-  const [modelLoaded, setModelLoaded] = useState(false);
-  const { setRobotLoaded, setRobotPosition, simulationState } = useSimulationStore();
+  const [useDetailedModel] = useState(true);
+  const { setRobotLoaded, setRobotPosition, setRobotRotation, simulationState } = useSimulationStore();
   const movement = useKeyboardControls();
 
-  // Try to load Go2 model if available
   useEffect(() => {
-    // For now, use placeholder
-    // When model is downloaded, this will load the GLB
-    setModelLoaded(false);
     setRobotLoaded(true);
   }, [setRobotLoaded]);
 
@@ -130,19 +181,22 @@ export function RobotDog() {
 
     // Update store
     setRobotPosition(groupRef.current.position.clone());
+    setRobotRotation(groupRef.current.rotation.clone());
 
-    // Idle animation
-    const breathe = Math.sin(state.clock.elapsedTime * 3) * 0.005;
-    groupRef.current.position.y = breathe;
+    // Subtle body sway animation
+    const sway = Math.sin(state.clock.elapsedTime * 3) * 0.003;
+    groupRef.current.position.y = sway;
   });
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
-      {!modelLoaded && <PlaceholderRobot />}
-      {/* Real model will be loaded here when available */}
+      {useDetailedModel ? (
+        <Suspense fallback={<LoadingRobot />}>
+          <Go2ModelWithFallback />
+        </Suspense>
+      ) : (
+        <PlaceholderRobot />
+      )}
     </group>
   );
 }
-
-// Preload the model if it exists
-// useGLTF.preload('/models/go2/go2.glb');

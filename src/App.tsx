@@ -1,8 +1,13 @@
-import { Header, ControlPanel, StatusBar } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import './styles/global.css';
 
 function App() {
+  const handleSceneLoad = (file: File) => {
+    console.log('Loading scene:', file.name);
+    // Scene loading will be handled by the 3D canvas
+  };
+
   return (
     <div className="app-container">
       {/* Header */}
@@ -13,7 +18,10 @@ function App() {
         {/* 3D Canvas */}
         <SimulationCanvas />
 
-        {/* Control Panel Overlay */}
+        {/* Scene Panel (Left) */}
+        <ScenePanel onSceneLoad={handleSceneLoad} />
+
+        {/* Control Panel (Right) */}
         <ControlPanel />
 
         {/* Grid Background Effect */}
