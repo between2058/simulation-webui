@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSimulationStore } from '../../stores/simulationStore';
 import { useKeyboardControls } from '../../utils/useKeyboardControls';
-import { Go2Model } from './Go2Model';
+import { Go2Model, Go2ModelSimple } from './Go2Model';
 import { getObstacleBounds } from '../Scene/Obstacles';
 
 // Placeholder robot while model loads
@@ -83,7 +83,7 @@ function Go2ModelWithFallback() {
   const [hasError, setHasError] = useState(false);
 
   if (hasError) {
-    return <PlaceholderRobot />;
+    return <Go2ModelSimple />;
   }
 
   return (
