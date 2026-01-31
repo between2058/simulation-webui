@@ -1,5 +1,6 @@
 import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
+import { LidarDisplay } from './components/Sensors/LidarSensor';
 import './styles/global.css';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
         <div className="patrol-panel">
           <PatrolControls />
           <MissionStats />
+          <LidarDisplay />
         </div>
 
         {/* Control Panel (Right) */}

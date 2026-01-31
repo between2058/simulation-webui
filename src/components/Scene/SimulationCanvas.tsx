@@ -15,6 +15,7 @@ import { CameraController } from '../Camera/CameraController';
 import { Obstacles, getObstacleBounds } from './Obstacles';
 import { PathVisualization } from './PathVisualization';
 import { Waypoints } from './Waypoints';
+import { LidarSensor } from '../Sensors/LidarSensor';
 import { createPathfindingGrid, findPath, type PathfindingGrid } from '../../utils/pathfinding';
 import './SimulationCanvas.css';
 
@@ -100,7 +101,7 @@ interface SceneContentProps {
 }
 
 function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle, onAddWaypoint }: SceneContentProps) {
-  const { showGrid, showStats, cameraMode, controlsEnabled } = useSimulationStore();
+  const { showGrid, showStats, cameraMode, controlsEnabled, showLidar } = useSimulationStore();
 
   return (
     <>
@@ -154,6 +155,9 @@ function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle, onAd
       <Suspense fallback={<LoadingFallback />}>
         <RobotDog targetPosition={targetPosition} path={path} />
       </Suspense>
+
+      {/* LiDAR Sensor */}
+      {showLidar && <LidarSensor rayCount={36} maxDistance={5} />}
 
       {/* Camera Controller */}
       <CameraController />

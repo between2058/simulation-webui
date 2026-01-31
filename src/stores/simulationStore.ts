@@ -69,6 +69,8 @@ interface SimulationStore {
   toggleStats: () => void;
   showPathfinding: boolean;
   togglePathfinding: () => void;
+  showLidar: boolean;
+  toggleLidar: () => void;
 
   // Controls
   controlsEnabled: boolean;
@@ -152,6 +154,8 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
   toggleStats: () => set((state) => ({ showStats: !state.showStats })),
   showPathfinding: false,
   togglePathfinding: () => set((state) => ({ showPathfinding: !state.showPathfinding })),
+  showLidar: true,
+  toggleLidar: () => set((state) => ({ showLidar: !state.showLidar })),
 
   // Controls
   controlsEnabled: true,
