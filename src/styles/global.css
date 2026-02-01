@@ -118,6 +118,52 @@ body {
   z-index: var(--z-overlay);
 }
 
+/* === Left Panel Stack === */
+.left-panel-stack {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: var(--z-panel);
+  max-height: calc(50% - 40px);
+  overflow-y: auto;
+}
+
+.left-panel-stack::-webkit-scrollbar {
+  width: 4px;
+}
+
+.left-panel-stack > .panel {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* === Right Panel Stack === */
+.right-panel-stack {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: var(--z-panel);
+  max-height: calc(100% - 100px);
+  overflow-y: auto;
+}
+
+.right-panel-stack::-webkit-scrollbar {
+  width: 4px;
+}
+
+.right-panel-stack > .panel {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+}
+
 /* === Patrol Panel === */
 .patrol-panel {
   position: absolute;
@@ -130,12 +176,4 @@ body {
   z-index: var(--z-panel);
   max-height: calc(100% - 200px);
   overflow-y: auto;
-}
-
-/* === Physics Panel === */
-.physics-panel {
-  position: absolute;
-  right: 16px;
-  bottom: 60px;
-  z-index: var(--z-panel);
 }

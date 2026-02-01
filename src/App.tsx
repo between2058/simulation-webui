@@ -20,11 +20,11 @@ function App() {
         {/* 3D Canvas */}
         <SimulationCanvas />
 
-        {/* Scene Panel (Left) */}
-        <ScenePanel onSceneLoad={handleSceneLoad} />
-
-        {/* Model Upload Panel (Left) */}
-        <ModelUploadPanel />
+        {/* Left Panel Stack - Scene & Models */}
+        <div className="left-panel-stack">
+          <ScenePanel onSceneLoad={handleSceneLoad} />
+          <ModelUploadPanel />
+        </div>
 
         {/* Scene Editor (Bottom Left) */}
         <SceneEditor />
@@ -37,19 +37,15 @@ function App() {
           <LidarDisplay />
         </div>
 
-        {/* Control Panel (Right) */}
-        <ControlPanel />
-
-        {/* Multi-Robot Panel (Right) */}
-        <MultiRobotPanel />
-
-        {/* MuJoCo Physics Panel (Right Bottom) */}
-        <div className="physics-panel">
+        {/* Right Panel Stack - Controls & Robots */}
+        <div className="right-panel-stack">
+          <ControlPanel />
+          <MultiRobotPanel />
           <MuJoCoPanel />
         </div>
 
         {/* Picture-in-Picture Camera View */}
-        <PictureInPicture position="bottom-right" />
+        <PictureInPicture position="top-left" />
 
         {/* Grid Background Effect */}
         <div className="grid-bg" />

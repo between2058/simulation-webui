@@ -19,22 +19,36 @@
 
 .pip-container--top-left {
   top: 80px;
-  left: 20px;
+  left: 260px;
 }
 
 .pip-container--bottom-right {
   bottom: 60px;
-  right: 20px;
+  right: 260px;
 }
 
 .pip-container--bottom-left {
-  bottom: 60px;
-  left: 20px;
+  bottom: 80px;
+  left: 260px;
 }
 
 .pip-container--dragging {
-  opacity: 0.9;
+  opacity: 0.85;
   cursor: grabbing;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 60px rgba(0, 212, 255, 0.3);
+}
+
+/* Resize handle hint */
+.pip-container::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0, 212, 255, 0.3) 50%);
+  border-radius: 0 0 4px 0;
+  pointer-events: none;
 }
 
 /* Header */
