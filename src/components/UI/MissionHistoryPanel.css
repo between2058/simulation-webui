@@ -1,0 +1,243 @@
+.mission-history-panel {
+  width: 260px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Export Controls */
+.export-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.export-btn {
+  flex: 1;
+  padding: 6px 10px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.5);
+  color: #00d4ff;
+}
+
+.clear-btn {
+  padding: 6px 10px;
+  background: rgba(255, 100, 100, 0.1);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.5);
+  color: #ff6b6b;
+}
+
+/* Selection Hint */
+.selection-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(0, 212, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 10px;
+  color: #00d4ff;
+}
+
+.selection-hint button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.selection-hint button:hover {
+  color: white;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.empty-state .hint {
+  font-size: 10px;
+  margin-top: 6px;
+  opacity: 0.6;
+}
+
+/* Mission List */
+.mission-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mission-item {
+  padding: 10px;
+  background: rgba(0, 20, 40, 0.6);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mission-item:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.mission-item.selected {
+  border-color: #00d4ff;
+  background: rgba(0, 212, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+}
+
+.mission-item.success {
+  border-left: 3px solid #00ff88;
+}
+
+.mission-item.incomplete {
+  border-left: 3px solid #ffaa00;
+}
+
+/* Mission Header */
+.mission-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.status-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.status-badge.success {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+}
+
+.status-badge.incomplete {
+  background: rgba(255, 170, 0, 0.2);
+  color: #ffaa00;
+}
+
+.mission-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.2s ease;
+}
+
+.delete-btn:hover {
+  color: #ff6b6b;
+}
+
+/* Mission Details */
+.mission-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px 8px;
+  margin-bottom: 8px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.detail-value.warning {
+  color: #ff8844;
+}
+
+/* Mission Meta */
+.mission-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.meta-tag {
+  padding: 2px 6px;
+  background: rgba(0, 212, 255, 0.15);
+  border-radius: 3px;
+  font-size: 9px;
+  color: #00d4ff;
+  text-transform: uppercase;
+}
+
+.meta-speed {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'JetBrains Mono', monospace;
+}

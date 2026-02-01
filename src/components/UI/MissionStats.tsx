@@ -6,20 +6,38 @@ export function MissionStats() {
     missionStats,
     simulationState,
     waypoints,
+    pauseMission,
+    resumeMission,
+    saveMission,
+    stopMission,
   } = useSimulationStore();
   const [liveTime, setLiveTime] = useState(0);
 
   // Update live time
   useEffect(() => {
-    if (missionStats.isRecording && missionStats.startTime) {
+    if (missionStats.isRecording && missionStats.startTime && !missionStats.isPaused) {
       const interval = setInterval(() => {
-        setLiveTime((Date.now() - missionStats.startTime!) / 1000);
+        const elapsed = (Date.now() - missionStats.startTime! - missionStats.pausedTime) / 1000;
+        setLiveTime(Math.max(0, elapsed));
       }, 100);
       return () => clearInterval(interval);
-    } else {
+    } else if (!missionStats.isRecording) {
       setLiveTime(missionStats.timeElapsed);
     }
-  }, [missionStats.isRecording, missionStats.startTime, missionStats.timeElapsed]);
+  }, [missionStats.isRecording, missionStats.startTime, missionStats.timeElapsed, missionStats.isPaused, missionStats.pausedTime]);
+
+  const handlePauseResume = () => {
+    if (missionStats.isPaused) {
+      resumeMission();
+    } else {
+      pauseMission();
+    }
+  };
+
+  const handleSaveAndStop = () => {
+    stopMission();
+    saveMission();
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -70,7 +88,7 @@ export function MissionStats() {
         </div>
       </div>
 
-      {simulationState === 'running' && (
+      {(simulationState === 'running' || simulationState === 'paused') && (
         <div className="efficiency-bar">
           <span className="label">效率評分</span>
           <div className="bar">
@@ -84,6 +102,33 @@ export function MissionStats() {
           <span className="score">
             {Math.max(0, 100 - missionStats.collisionCount * 10)}%
           </span>
+        </div>
+      )}
+
+      {/* Mission Controls */}
+      {missionStats.isRecording && (
+        <div className="mission-controls">
+          <button
+            className={`control-btn ${missionStats.isPaused ? 'paused' : ''}`}
+            onClick={handlePauseResume}
+            title={missionStats.isPaused ? '繼續任務' : '暫停任務'}
+          >
+            {missionStats.isPaused ? '▶ 繼續' : '⏸ 暫停'}
+          </button>
+          <button
+            className="control-btn save"
+            onClick={handleSaveAndStop}
+            title="保存並結束任務"
+          >
+            💾 保存
+          </button>
+        </div>
+      )}
+
+      {/* Paused indicator */}
+      {missionStats.isPaused && (
+        <div className="paused-indicator">
+          ⏸ 任務已暫停
         </div>
       )}
 
@@ -200,6 +245,62 @@ export function MissionStats() {
           color: #00ff88;
           min-width: 40px;
           text-align: right;
+        }
+
+        .mission-controls {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+
+        .control-btn {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid rgba(0, 212, 255, 0.3);
+          border-radius: 4px;
+          background: rgba(0, 212, 255, 0.1);
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 11px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+          background: rgba(0, 212, 255, 0.2);
+          border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .control-btn.paused {
+          background: rgba(0, 255, 136, 0.15);
+          border-color: rgba(0, 255, 136, 0.5);
+          color: #00ff88;
+        }
+
+        .control-btn.save {
+          background: rgba(255, 170, 0, 0.1);
+          border-color: rgba(255, 170, 0, 0.3);
+        }
+
+        .control-btn.save:hover {
+          background: rgba(255, 170, 0, 0.2);
+          border-color: rgba(255, 170, 0, 0.5);
+        }
+
+        .paused-indicator {
+          margin-top: 8px;
+          padding: 6px 10px;
+          background: rgba(255, 170, 0, 0.15);
+          border: 1px solid rgba(255, 170, 0, 0.3);
+          border-radius: 4px;
+          color: #ffaa00;
+          font-size: 11px;
+          text-align: center;
+          animation: pauseBlink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pauseBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
         }
       `}</style>
     </div>

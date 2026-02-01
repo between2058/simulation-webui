@@ -1,4 +1,4 @@
-import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls, PathRecorder, MuJoCoPanel, ModelUploadPanel, MultiRobotPanel } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, MissionHistoryPanel, PatrolControls, PathRecorder, MuJoCoPanel, ModelUploadPanel, MultiRobotPanel } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import { LidarDisplay } from './components/Sensors/LidarSensor';
 import { PictureInPicture } from './components/Camera/PictureInPicture';
@@ -36,6 +36,9 @@ function App() {
           <PathRecorder />
           <LidarDisplay />
         </div>
+
+        {/* Mission History (Bottom Left) */}
+        <MissionHistoryPanel />
 
         {/* Right Panel Stack - Controls & Robots */}
         <div className="right-panel-stack">

@@ -6,6 +6,7 @@ export { StatusBar } from './StatusBar';
 export { ScenePanel } from './ScenePanel';
 export { SceneEditor } from './SceneEditor';
 export { MissionStats } from './MissionStats';
+export { MissionHistoryPanel } from './MissionHistoryPanel';
 export { PatrolControls } from './PatrolControls';
 export { PathRecorder } from './PathRecorder';
 export { MuJoCoPanel } from './MuJoCoPanel';

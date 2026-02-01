@@ -1,4 +1,4 @@
-import { useSimulationStore } from '../../stores/simulationStore';
+import { useSimulationStore, type WaypointData } from '../../stores/simulationStore';
 
 export function PatrolControls() {
   const {
@@ -16,6 +16,9 @@ export function PatrolControls() {
     setCurrentWaypointIndex,
     exportScene,
     importScene,
+    updateWaypoint,
+    selectedWaypointId,
+    setSelectedWaypointId,
   } = useSimulationStore();
 
   const handleExport = () => {
@@ -121,6 +124,38 @@ export function PatrolControls() {
           <span>循環巡邏</span>
         </label>
       </div>
+
+      {/* Waypoint Wait Time Configuration */}
+      {waypoints.length > 0 && editorMode === 'patrol' && (
+        <div className="waypoint-times">
+          <div className="times-header">⏱️ 等待時間設定</div>
+          <div className="times-list">
+            {waypoints.map((wp: WaypointData, index: number) => (
+              <div
+                key={wp.id}
+                className={`time-item ${selectedWaypointId === wp.id ? 'selected' : ''}`}
+                onClick={() => setSelectedWaypointId(selectedWaypointId === wp.id ? null : wp.id)}
+              >
+                <span className="wp-number">{index + 1}</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="60"
+                  step="1"
+                  value={wp.waitTime || 0}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    updateWaypoint(wp.id, { waitTime: Number(e.target.value) });
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  title="等待時間(秒)"
+                />
+                <span className="time-unit">秒</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="action-buttons">
         {simulationState !== 'running' ? (
@@ -293,6 +328,83 @@ export function PatrolControls() {
 
         .scene-buttons button:hover {
           background: rgba(0, 212, 255, 0.2);
+        }
+
+        .waypoint-times {
+          margin-bottom: 12px;
+          padding: 8px;
+          background: rgba(0, 212, 255, 0.05);
+          border-radius: 6px;
+          border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .times-header {
+          font-size: 11px;
+          color: #00d4ff;
+          margin-bottom: 8px;
+        }
+
+        .times-list {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          max-height: 100px;
+          overflow-y: auto;
+        }
+
+        .time-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px;
+          background: rgba(0, 20, 40, 0.6);
+          border: 1px solid rgba(0, 212, 255, 0.2);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .time-item:hover {
+          border-color: rgba(0, 212, 255, 0.4);
+        }
+
+        .time-item.selected {
+          border-color: #00d4ff;
+          background: rgba(0, 212, 255, 0.1);
+        }
+
+        .wp-number {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #00d4ff;
+          color: #000;
+          font-size: 10px;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .time-item input {
+          width: 50px;
+          padding: 4px 6px;
+          background: rgba(0, 20, 40, 0.8);
+          border: 1px solid rgba(0, 212, 255, 0.3);
+          border-radius: 4px;
+          color: white;
+          font-size: 11px;
+          font-family: 'JetBrains Mono', monospace;
+        }
+
+        .time-item input:focus {
+          outline: none;
+          border-color: #00d4ff;
+        }
+
+        .time-unit {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.5);
         }
       `}</style>
     </div>

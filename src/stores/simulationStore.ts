@@ -60,6 +60,25 @@ export interface MissionStats {
   waypointsReached: number;
   startTime: number | null;
   isRecording: boolean;
+  isPaused: boolean;
+  pausedTime: number; // accumulated paused time
+}
+
+// Saved mission history record
+export interface MissionRecord {
+  id: string;
+  name: string;
+  completedAt: number;
+  duration: number; // seconds
+  distanceTraveled: number;
+  waypointsTotal: number;
+  waypointsReached: number;
+  collisionCount: number;
+  robotCount: number;
+  patrolMode: PatrolMode;
+  formationMode: FormationMode;
+  success: boolean; // all waypoints reached
+  averageSpeed: number; // m/s
 }
 
 // Terrain zone
@@ -142,21 +161,33 @@ interface SimulationStore {
   waypoints: WaypointData[];
   currentWaypointIndex: number;
   patrolLoop: boolean;
+  selectedWaypointId: string | null;
   addWaypoint: (waypoint: WaypointData) => void;
   removeWaypoint: (id: string) => void;
+  updateWaypoint: (id: string, updates: Partial<WaypointData>) => void;
   clearWaypoints: () => void;
   setCurrentWaypointIndex: (index: number) => void;
   setPatrolLoop: (loop: boolean) => void;
+  setSelectedWaypointId: (id: string | null) => void;
 
   // Mission Statistics
   missionStats: MissionStats;
   startMission: () => void;
   stopMission: () => void;
+  pauseMission: () => void;
+  resumeMission: () => void;
   updateMissionStats: (updates: Partial<MissionStats>) => void;
   resetMissionStats: () => void;
   incrementCollision: () => void;
   incrementWaypointReached: () => void;
   addDistance: (distance: number) => void;
+
+  // Mission History
+  missionHistory: MissionRecord[];
+  saveMission: (name?: string) => void;
+  deleteMission: (id: string) => void;
+  clearMissionHistory: () => void;
+  exportMissionReport: (format: 'json' | 'csv', missionIds?: string[]) => string;
 
   // Terrain Zones
   terrainZones: TerrainZoneData[];
@@ -310,16 +341,25 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
   waypoints: [],
   currentWaypointIndex: 0,
   patrolLoop: true,
+  selectedWaypointId: null,
   addWaypoint: (waypoint) =>
     set((state) => ({ waypoints: [...state.waypoints, waypoint] })),
   removeWaypoint: (id) =>
     set((state) => ({
       waypoints: state.waypoints.filter((w) => w.id !== id),
       currentWaypointIndex: Math.min(state.currentWaypointIndex, Math.max(0, state.waypoints.length - 2)),
+      selectedWaypointId: state.selectedWaypointId === id ? null : state.selectedWaypointId,
     })),
-  clearWaypoints: () => set({ waypoints: [], currentWaypointIndex: 0 }),
+  updateWaypoint: (id, updates) =>
+    set((state) => ({
+      waypoints: state.waypoints.map((w) =>
+        w.id === id ? { ...w, ...updates } : w
+      ),
+    })),
+  clearWaypoints: () => set({ waypoints: [], currentWaypointIndex: 0, selectedWaypointId: null }),
   setCurrentWaypointIndex: (index) => set({ currentWaypointIndex: index }),
   setPatrolLoop: (loop) => set({ patrolLoop: loop }),
+  setSelectedWaypointId: (id) => set({ selectedWaypointId: id }),
 
   // Mission Statistics
   missionStats: {
@@ -329,6 +369,8 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
     waypointsReached: 0,
     startTime: null,
     isRecording: false,
+    isPaused: false,
+    pausedTime: 0,
   },
   startMission: () =>
     set((state) => ({
@@ -336,17 +378,48 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
         ...state.missionStats,
         startTime: Date.now(),
         isRecording: true,
+        isPaused: false,
+        pausedTime: 0,
+        distanceTraveled: 0,
+        collisionCount: 0,
+        waypointsReached: 0,
+        timeElapsed: 0,
       },
     })),
   stopMission: () =>
+    set((state) => {
+      const now = Date.now();
+      const elapsed = state.missionStats.startTime
+        ? (now - state.missionStats.startTime - state.missionStats.pausedTime) / 1000
+        : state.missionStats.timeElapsed;
+      return {
+        missionStats: {
+          ...state.missionStats,
+          isRecording: false,
+          isPaused: false,
+          timeElapsed: elapsed,
+        },
+      };
+    }),
+  pauseMission: () =>
     set((state) => ({
       missionStats: {
         ...state.missionStats,
-        isRecording: false,
-        timeElapsed: state.missionStats.startTime
-          ? (Date.now() - state.missionStats.startTime) / 1000
-          : state.missionStats.timeElapsed,
+        isPaused: true,
+        // Store the pause start time in pausedTime temporarily
+        pausedTime: state.missionStats.pausedTime - Date.now(),
       },
+      simulationState: 'paused',
+    })),
+  resumeMission: () =>
+    set((state) => ({
+      missionStats: {
+        ...state.missionStats,
+        isPaused: false,
+        // Add the paused duration
+        pausedTime: state.missionStats.pausedTime + Date.now(),
+      },
+      simulationState: 'running',
     })),
   updateMissionStats: (updates) =>
     set((state) => ({
@@ -361,6 +434,8 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
         waypointsReached: 0,
         startTime: null,
         isRecording: false,
+        isPaused: false,
+        pausedTime: 0,
       },
     }),
   incrementCollision: () =>
@@ -384,6 +459,74 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
         distanceTraveled: state.missionStats.distanceTraveled + distance,
       },
     })),
+
+  // Mission History
+  missionHistory: [],
+  saveMission: (name) =>
+    set((state) => {
+      const { missionStats, waypoints, robots, patrolMode, formationMode } = state;
+      const duration = missionStats.timeElapsed;
+      const record: MissionRecord = {
+        id: `mission_${Date.now()}`,
+        name: name || `Mission ${state.missionHistory.length + 1}`,
+        completedAt: Date.now(),
+        duration,
+        distanceTraveled: missionStats.distanceTraveled,
+        waypointsTotal: waypoints.length,
+        waypointsReached: missionStats.waypointsReached,
+        collisionCount: missionStats.collisionCount,
+        robotCount: robots.length,
+        patrolMode,
+        formationMode,
+        success: missionStats.waypointsReached >= waypoints.length,
+        averageSpeed: duration > 0 ? missionStats.distanceTraveled / duration : 0,
+      };
+      return { missionHistory: [...state.missionHistory, record] };
+    }),
+  deleteMission: (id) =>
+    set((state) => ({
+      missionHistory: state.missionHistory.filter((m) => m.id !== id),
+    })),
+  clearMissionHistory: () => set({ missionHistory: [] }),
+  exportMissionReport: (format, missionIds): string => {
+    const state = useSimulationStore.getState();
+    const missions = missionIds
+      ? state.missionHistory.filter((m: MissionRecord) => missionIds.includes(m.id))
+      : state.missionHistory;
+
+    if (format === 'json') {
+      return JSON.stringify({
+        exportedAt: new Date().toISOString(),
+        totalMissions: missions.length,
+        missions: missions.map((m: MissionRecord) => ({
+          ...m,
+          completedAt: new Date(m.completedAt).toISOString(),
+        })),
+      }, null, 2);
+    }
+
+    // CSV format
+    const headers = [
+      'Name', 'Completed At', 'Duration (s)', 'Distance (m)',
+      'Waypoints Reached', 'Waypoints Total', 'Collisions',
+      'Robot Count', 'Patrol Mode', 'Formation', 'Success', 'Avg Speed (m/s)'
+    ];
+    const rows = missions.map((m: MissionRecord) => [
+      m.name,
+      new Date(m.completedAt).toISOString(),
+      m.duration.toFixed(2),
+      m.distanceTraveled.toFixed(2),
+      m.waypointsReached,
+      m.waypointsTotal,
+      m.collisionCount,
+      m.robotCount,
+      m.patrolMode,
+      m.formationMode,
+      m.success ? 'Yes' : 'No',
+      m.averageSpeed.toFixed(3),
+    ]);
+    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  },
 
   // Terrain Zones - default zones for demo
   terrainZones: [

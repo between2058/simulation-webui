@@ -124,6 +124,8 @@ function FleetRobot({
 }: FleetRobotProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [waitEndTime, setWaitEndTime] = useState(0);
   const {
     updateRobot,
     simulationState,
@@ -131,6 +133,8 @@ function FleetRobot({
     formationSpacing,
     patrolMode,
     waypoints,
+    incrementWaypointReached,
+    missionStats,
   } = useSimulationStore();
 
   const robotRadius = 0.4;
@@ -219,6 +223,18 @@ function FleetRobot({
       }
       // Patrol mode for leader
       else if (patrolMode === 'single' && waypoints.length > 0) {
+        // Check if currently waiting at waypoint
+        if (isWaiting) {
+          const now = Date.now();
+          if (now >= waitEndTime) {
+            setIsWaiting(false);
+            const wpIndex = robot.targetWaypointIndex % waypoints.length;
+            updateRobot(robot.id, { targetWaypointIndex: wpIndex + 1 });
+          }
+          // Just wait, don't move
+          return;
+        }
+
         const wpIndex = robot.targetWaypointIndex % waypoints.length;
         const targetWp = waypoints[wpIndex];
         const targetVec = new THREE.Vector3(targetWp.position[0], 0, targetWp.position[2]);
@@ -226,7 +242,18 @@ function FleetRobot({
         const distance = direction.length();
 
         if (distance < 0.3) {
-          updateRobot(robot.id, { targetWaypointIndex: wpIndex + 1 });
+          // Reached waypoint - check if we need to wait
+          if (missionStats.isRecording && robot.isLeader) {
+            incrementWaypointReached();
+          }
+
+          const waitTime = targetWp.waitTime || 0;
+          if (waitTime > 0) {
+            setIsWaiting(true);
+            setWaitEndTime(Date.now() + waitTime * 1000);
+          } else {
+            updateRobot(robot.id, { targetWaypointIndex: wpIndex + 1 });
+          }
         } else {
           direction.normalize();
           targetRotation = Math.atan2(-direction.z, direction.x);
@@ -254,6 +281,18 @@ function FleetRobot({
     } else {
       // Follower behavior
       if (patrolMode === 'distributed' && robot.assignedWaypoints.length > 0) {
+        // Check if currently waiting at waypoint
+        if (isWaiting) {
+          const now = Date.now();
+          if (now >= waitEndTime) {
+            setIsWaiting(false);
+            updateRobot(robot.id, {
+              targetWaypointIndex: (robot.targetWaypointIndex + 1) % robot.assignedWaypoints.length,
+            });
+          }
+          return;
+        }
+
         // Distributed patrol - each robot follows its own waypoints
         const wpId = robot.assignedWaypoints[robot.targetWaypointIndex % robot.assignedWaypoints.length];
         const targetWp = waypoints.find((w) => w.id === wpId);
@@ -264,9 +303,16 @@ function FleetRobot({
           const distance = direction.length();
 
           if (distance < 0.3) {
-            updateRobot(robot.id, {
-              targetWaypointIndex: (robot.targetWaypointIndex + 1) % robot.assignedWaypoints.length,
-            });
+            // Reached waypoint - check if we need to wait
+            const waitTime = targetWp.waitTime || 0;
+            if (waitTime > 0) {
+              setIsWaiting(true);
+              setWaitEndTime(Date.now() + waitTime * 1000);
+            } else {
+              updateRobot(robot.id, {
+                targetWaypointIndex: (robot.targetWaypointIndex + 1) % robot.assignedWaypoints.length,
+              });
+            }
           } else {
             direction.normalize();
             targetRotation = Math.atan2(-direction.z, direction.x);
@@ -362,6 +408,31 @@ function FleetRobot({
           <coneGeometry args={[0.05, 0.1, 4]} />
           <meshStandardMaterial color="#ffe66d" emissive="#ffe66d" emissiveIntensity={2} />
         </mesh>
+      )}
+
+      {/* Waiting indicator */}
+      {isWaiting && (
+        <group position={[0, 0.9, 0]}>
+          <mesh>
+            <ringGeometry args={[0.08, 0.12, 16]} />
+            <meshStandardMaterial
+              color="#ffaa00"
+              emissive="#ffaa00"
+              emissiveIntensity={2}
+              transparent
+              opacity={0.8}
+            />
+          </mesh>
+          <mesh rotation={[0, 0, Math.PI * ((Date.now() - waitEndTime + (waypoints[robot.targetWaypointIndex % waypoints.length]?.waitTime || 0) * 1000) / ((waypoints[robot.targetWaypointIndex % waypoints.length]?.waitTime || 1) * 1000))]}>
+            <circleGeometry args={[0.1, 16, 0, Math.PI * 2 * Math.max(0, Math.min(1, (waitEndTime - Date.now()) / ((waypoints[robot.targetWaypointIndex % waypoints.length]?.waitTime || 1) * 1000)))]} />
+            <meshStandardMaterial
+              color="#00ff88"
+              emissive="#00ff88"
+              emissiveIntensity={1}
+              side={2}
+            />
+          </mesh>
+        </group>
       )}
     </group>
   );
