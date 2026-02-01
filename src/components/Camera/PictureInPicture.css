@@ -1,0 +1,231 @@
+.pip-container {
+  position: fixed;
+  width: 320px;
+  height: 240px;
+  background: rgba(0, 10, 20, 0.95);
+  border: 2px solid rgba(0, 212, 255, 0.5);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 212, 255, 0.2);
+  z-index: 1000;
+  cursor: move;
+  user-select: none;
+}
+
+.pip-container--top-right {
+  top: 80px;
+  right: 280px;
+}
+
+.pip-container--top-left {
+  top: 80px;
+  left: 20px;
+}
+
+.pip-container--bottom-right {
+  bottom: 60px;
+  right: 20px;
+}
+
+.pip-container--bottom-left {
+  bottom: 60px;
+  left: 20px;
+}
+
+.pip-container--dragging {
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+/* Header */
+.pip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(0, 20, 40, 0.9);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.pip-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #00d4ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pip-indicator {
+  width: 8px;
+  height: 8px;
+  background: #ff4444;
+  border-radius: 50%;
+  animation: pip-blink 1s ease-in-out infinite;
+}
+
+@keyframes pip-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.pip-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+}
+
+.pip-robot-select {
+  background: rgba(0, 20, 40, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.pip-robot-select:focus {
+  outline: none;
+  border-color: #00d4ff;
+}
+
+.pip-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.2s ease;
+}
+
+.pip-close:hover {
+  color: #ff6b6b;
+}
+
+/* Canvas */
+.pip-canvas {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 32px);
+}
+
+.pip-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Overlay */
+.pip-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.pip-scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  animation: pip-scanline 8s linear infinite;
+}
+
+@keyframes pip-scanline {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+.pip-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+/* HUD */
+.pip-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.pip-hud-item {
+  position: absolute;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(0, 212, 255, 0.8);
+  text-shadow: 0 0 4px rgba(0, 212, 255, 0.5);
+  padding: 4px 8px;
+}
+
+.pip-hud-item--top-left {
+  top: 8px;
+  left: 8px;
+  color: #ff4444;
+  animation: pip-blink 1s ease-in-out infinite;
+}
+
+.pip-hud-item--bottom-left {
+  bottom: 8px;
+  left: 8px;
+}
+
+.pip-hud-item--bottom-right {
+  bottom: 8px;
+  right: 8px;
+}
+
+/* Crosshair */
+.pip-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.pip-crosshair-h,
+.pip-crosshair-v {
+  position: absolute;
+  background: rgba(0, 212, 255, 0.5);
+}
+
+.pip-crosshair-h {
+  width: 20px;
+  height: 1px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pip-crosshair-v {
+  width: 1px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

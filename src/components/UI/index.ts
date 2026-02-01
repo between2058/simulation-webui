@@ -9,3 +9,5 @@ export { MissionStats } from './MissionStats';
 export { PatrolControls } from './PatrolControls';
 export { PathRecorder } from './PathRecorder';
 export { MuJoCoPanel } from './MuJoCoPanel';
+export { ModelUploadPanel } from './ModelUploadPanel';
+export { MultiRobotPanel } from './MultiRobotPanel';

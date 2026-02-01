@@ -1,6 +1,7 @@
-import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls, PathRecorder, MuJoCoPanel } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls, PathRecorder, MuJoCoPanel, ModelUploadPanel, MultiRobotPanel } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import { LidarDisplay } from './components/Sensors/LidarSensor';
+import { PictureInPicture } from './components/Camera/PictureInPicture';
 import './styles/global.css';
 
 function App() {
@@ -22,6 +23,9 @@ function App() {
         {/* Scene Panel (Left) */}
         <ScenePanel onSceneLoad={handleSceneLoad} />
 
+        {/* Model Upload Panel (Left) */}
+        <ModelUploadPanel />
+
         {/* Scene Editor (Bottom Left) */}
         <SceneEditor />
 
@@ -36,10 +40,16 @@ function App() {
         {/* Control Panel (Right) */}
         <ControlPanel />
 
+        {/* Multi-Robot Panel (Right) */}
+        <MultiRobotPanel />
+
         {/* MuJoCo Physics Panel (Right Bottom) */}
         <div className="physics-panel">
           <MuJoCoPanel />
         </div>
+
+        {/* Picture-in-Picture Camera View */}
+        <PictureInPicture position="bottom-right" />
 
         {/* Grid Background Effect */}
         <div className="grid-bg" />

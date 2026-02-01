@@ -1,0 +1,266 @@
+.multi-robot-panel {
+  width: 220px;
+}
+
+/* Robot List */
+.robot-list {
+  margin-bottom: 16px;
+}
+
+.robot-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.robot-list__header span {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.robot-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.robot-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 20, 40, 0.6);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.robot-item:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.robot-item--selected {
+  border-color: #00d4ff;
+  background: rgba(0, 212, 255, 0.15);
+}
+
+.robot-item__color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.robot-item__name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.robot-item__leader {
+  color: #ffe66d;
+}
+
+.robot-item__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.robot-item__action {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.robot-item__action:hover {
+  color: #00d4ff;
+}
+
+.robot-item__action--leader:hover {
+  color: #ffe66d;
+}
+
+.robot-item__action--delete:hover {
+  color: #ff6b6b;
+}
+
+/* Formation Section */
+.formation-section,
+.patrol-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.section-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.formation-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.formation-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: rgba(0, 20, 40, 0.6);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.formation-btn:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.formation-btn--active {
+  border-color: #00d4ff;
+  background: rgba(0, 212, 255, 0.2);
+}
+
+.formation-btn__icon {
+  font-size: 16px;
+  color: #00d4ff;
+}
+
+.formation-btn__label {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+.formation-btn--active .formation-btn__label {
+  color: #00d4ff;
+}
+
+.formation-spacing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.formation-spacing label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  width: 50px;
+}
+
+.formation-spacing input[type="range"] {
+  flex: 1;
+  height: 4px;
+  background: rgba(0, 212, 255, 0.2);
+  border-radius: 2px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.formation-spacing input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #00d4ff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.formation-spacing span {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  width: 35px;
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Patrol Section */
+.patrol-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.patrol-btn {
+  padding: 8px 12px;
+  background: rgba(0, 20, 40, 0.6);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.patrol-btn:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.patrol-btn--active {
+  border-color: #00d4ff;
+  background: rgba(0, 212, 255, 0.2);
+  color: #00d4ff;
+}
+
+.distribute-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Fleet Stats */
+.fleet-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.fleet-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(0, 20, 40, 0.4);
+  border-radius: 6px;
+}
+
+.fleet-stat__label {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.fleet-stat__value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #00d4ff;
+  font-family: 'JetBrains Mono', monospace;
+}

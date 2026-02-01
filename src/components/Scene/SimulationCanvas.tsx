@@ -10,7 +10,7 @@ import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimulationStore } from '../../stores/simulationStore';
 import { SceneEnvironment } from './SceneEnvironment';
-import { RobotDog } from '../RobotDog/RobotDog';
+import { RobotFleet } from '../RobotDog/RobotFleet';
 import { CameraController } from '../Camera/CameraController';
 import { Obstacles, getObstacleBounds } from './Obstacles';
 import { PathVisualization } from './PathVisualization';
@@ -18,6 +18,7 @@ import { Waypoints } from './Waypoints';
 import { TerrainZones } from './TerrainZones';
 import { PostProcessing } from './PostProcessing';
 import { LidarSensor } from '../Sensors/LidarSensor';
+import { ImportedModels, getImportedModelBounds } from './ImportedModels';
 import { createPathfindingGrid, findPath, type PathfindingGrid } from '../../utils/pathfinding';
 import './SimulationCanvas.css';
 
@@ -156,9 +157,12 @@ function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle, onAd
         />
       )}
 
-      {/* Robot Dog */}
+      {/* Imported GLB Models */}
+      <ImportedModels />
+
+      {/* Robot Fleet */}
       <Suspense fallback={<LoadingFallback />}>
-        <RobotDog targetPosition={targetPosition} path={path} />
+        <RobotFleet path={path} />
       </Suspense>
 
       {/* LiDAR Sensor */}
@@ -197,9 +201,10 @@ export function SimulationCanvas() {
   const [path, setPath] = useState<THREE.Vector3[] | null>(null);
   const [grid, setGrid] = useState<PathfindingGrid | null>(null);
   const {
-    robot,
+    robots,
     togglePathfinding,
     obstacles,
+    importedModels,
     addObstacle,
     placementType,
     editorMode,
@@ -207,12 +212,17 @@ export function SimulationCanvas() {
     addWaypoint
   } = useSimulationStore();
 
-  // Initialize pathfinding grid and update when obstacles change
+  // Get leader robot for pathfinding
+  const leaderRobot = robots.find((r) => r.isLeader) || robots[0];
+
+  // Initialize pathfinding grid and update when obstacles or imported models change
   useEffect(() => {
     const obstacleBounds = getObstacleBounds(obstacles);
-    const newGrid = createPathfindingGrid(obstacleBounds, 20, 0.5, 0.4);
+    const modelBounds = getImportedModelBounds(importedModels);
+    const allBounds = [...obstacleBounds, ...modelBounds];
+    const newGrid = createPathfindingGrid(allBounds, 20, 0.5, 0.4);
     setGrid(newGrid);
-  }, [obstacles]);
+  }, [obstacles, importedModels]);
 
   // Enable pathfinding visualization on mount
   useEffect(() => {
@@ -221,9 +231,9 @@ export function SimulationCanvas() {
 
   // Calculate path when target is set
   const handleTargetSet = useCallback((position: THREE.Vector3) => {
-    if (!grid) return;
+    if (!grid || !leaderRobot) return;
 
-    const robotPos = robot.position;
+    const robotPos = leaderRobot.position;
     const newPath = findPath(robotPos, position, grid);
 
     if (newPath) {
@@ -236,7 +246,7 @@ export function SimulationCanvas() {
       setTargetPosition(position);
       setPath(null);
     }
-  }, [grid, robot.position]);
+  }, [grid, leaderRobot]);
 
   // Place obstacle in edit mode
   const handlePlaceObstacle = useCallback((position: THREE.Vector3) => {

@@ -47,6 +47,13 @@ const GridIcon = () => (
   </svg>
 );
 
+const PipIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <rect x="12" y="10" width="8" height="5" rx="1" fill="currentColor" />
+  </svg>
+);
+
 export function ControlPanel() {
   const {
     simulationState,
@@ -57,8 +64,13 @@ export function ControlPanel() {
     toggleGrid,
     showStats,
     toggleStats,
-    robot,
+    showPiP,
+    togglePiP,
+    robots,
   } = useSimulationStore();
+
+  // Get leader robot for status display
+  const leaderRobot = robots.find((r) => r.isLeader) || robots[0];
 
   const cameraOptions: { mode: CameraMode; label: string }[] = [
     { mode: 'orbit', label: 'ORBIT' },
@@ -144,23 +156,32 @@ export function ControlPanel() {
           >
             Stats
           </Button>
+          <Button
+            variant={showPiP ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<PipIcon />}
+            onClick={togglePiP}
+            active={showPiP}
+          >
+            PiP
+          </Button>
         </div>
       </div>
 
       {/* Robot Status */}
       <div className="control-section">
-        <div className="control-section__label">ROBOT STATUS</div>
+        <div className="control-section__label">FLEET STATUS</div>
         <div className="status-grid">
           <div className="status-item">
-            <span className="status-item__label">Status</span>
-            <span className={`status-item__value status-item__value--${robot.isLoaded ? 'active' : 'inactive'}`}>
-              {robot.isLoaded ? 'READY' : 'LOADING'}
+            <span className="status-item__label">Robots</span>
+            <span className="status-item__value status-item__value--active">
+              {robots.length} ACTIVE
             </span>
           </div>
           <div className="status-item">
-            <span className="status-item__label">Position</span>
+            <span className="status-item__label">Leader</span>
             <span className="status-item__value status-item__value--mono">
-              {robot.position.x.toFixed(2)}, {robot.position.z.toFixed(2)}
+              {leaderRobot ? `${leaderRobot.name} (${leaderRobot.position.x.toFixed(1)}, ${leaderRobot.position.z.toFixed(1)})` : 'N/A'}
             </span>
           </div>
         </div>

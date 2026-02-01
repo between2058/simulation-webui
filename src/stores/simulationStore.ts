@@ -6,12 +6,43 @@ export type SimulationState = 'idle' | 'running' | 'paused';
 export type EditorMode = 'simulate' | 'edit' | 'patrol';
 export type ObstacleType = 'box' | 'cylinder';
 export type TerrainType = 'normal' | 'rough' | 'slippery' | 'slow';
+export type FormationMode = 'none' | 'line' | 'wedge' | 'circle' | 'spread';
+export type PatrolMode = 'single' | 'distributed';
+
+// Multi-robot state
+export interface RobotInstance {
+  id: string;
+  name: string;
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  velocity: THREE.Vector3;
+  isLoaded: boolean;
+  color: string;
+  isLeader: boolean;
+  targetWaypointIndex: number;
+  assignedWaypoints: string[]; // for distributed patrol
+}
 
 interface RobotState {
   position: THREE.Vector3;
   rotation: THREE.Euler;
   velocity: THREE.Vector3;
   isLoaded: boolean;
+}
+
+// Imported GLB model
+export interface ImportedModel {
+  id: string;
+  name: string;
+  url: string;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
+  boundingBox: {
+    min: [number, number, number];
+    max: [number, number, number];
+  };
+  enableCollision: boolean;
 }
 
 // Waypoint for patrol mode
@@ -151,6 +182,38 @@ interface SimulationStore {
   // Scene Import/Export
   exportScene: () => string;
   importScene: (json: string) => boolean;
+
+  // Imported GLB Models
+  importedModels: ImportedModel[];
+  selectedModelId: string | null;
+  addImportedModel: (model: ImportedModel) => void;
+  removeImportedModel: (id: string) => void;
+  updateImportedModel: (id: string, updates: Partial<ImportedModel>) => void;
+  setSelectedModelId: (id: string | null) => void;
+  clearImportedModels: () => void;
+
+  // Multi-Robot
+  robots: RobotInstance[];
+  selectedRobotId: string | null;
+  formationMode: FormationMode;
+  patrolMode: PatrolMode;
+  formationSpacing: number;
+  addRobot: (robot?: Partial<RobotInstance>) => string;
+  removeRobot: (id: string) => void;
+  updateRobot: (id: string, updates: Partial<RobotInstance>) => void;
+  setSelectedRobotId: (id: string | null) => void;
+  setFormationMode: (mode: FormationMode) => void;
+  setPatrolMode: (mode: PatrolMode) => void;
+  setFormationSpacing: (spacing: number) => void;
+  setRobotAsLeader: (id: string) => void;
+  getRobotById: (id: string) => RobotInstance | undefined;
+  distributeWaypoints: () => void;
+
+  // Picture-in-Picture
+  showPiP: boolean;
+  togglePiP: () => void;
+  pipRobotId: string | null;
+  setPipRobotId: (id: string | null) => void;
 }
 
 export const useSimulationStore = create<SimulationStore>((set) => ({
@@ -383,4 +446,150 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
       return false;
     }
   },
+
+  // Imported GLB Models
+  importedModels: [],
+  selectedModelId: null,
+  addImportedModel: (model) =>
+    set((state) => ({ importedModels: [...state.importedModels, model] })),
+  removeImportedModel: (id) =>
+    set((state) => ({
+      importedModels: state.importedModels.filter((m) => m.id !== id),
+      selectedModelId: state.selectedModelId === id ? null : state.selectedModelId,
+    })),
+  updateImportedModel: (id, updates) =>
+    set((state) => ({
+      importedModels: state.importedModels.map((m) =>
+        m.id === id ? { ...m, ...updates } : m
+      ),
+    })),
+  setSelectedModelId: (id) => set({ selectedModelId: id }),
+  clearImportedModels: () => set({ importedModels: [], selectedModelId: null }),
+
+  // Multi-Robot - default with one robot
+  robots: [
+    {
+      id: 'robot_1',
+      name: 'Alpha',
+      position: new THREE.Vector3(0, 0, 0),
+      rotation: new THREE.Euler(0, 0, 0),
+      velocity: new THREE.Vector3(0, 0, 0),
+      isLoaded: false,
+      color: '#00d4ff',
+      isLeader: true,
+      targetWaypointIndex: 0,
+      assignedWaypoints: [],
+    },
+  ],
+  selectedRobotId: 'robot_1',
+  formationMode: 'none' as FormationMode,
+  patrolMode: 'single' as PatrolMode,
+  formationSpacing: 1.5,
+  addRobot: (robotData) => {
+    const id = `robot_${Date.now()}`;
+    const robotColors = ['#00d4ff', '#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181'];
+    let newRobotId = id;
+    set((state) => {
+      const colorIndex = state.robots.length % robotColors.length;
+      const existingNames = state.robots.map((r) => r.name);
+      const greekLetters = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta'];
+      let name = greekLetters[state.robots.length % greekLetters.length];
+      let counter = 2;
+      while (existingNames.includes(name)) {
+        name = `${greekLetters[state.robots.length % greekLetters.length]}-${counter}`;
+        counter++;
+      }
+
+      // Calculate spawn position based on existing robots
+      const spawnOffset = state.robots.length * 1.5;
+      const newRobot: RobotInstance = {
+        id,
+        name,
+        position: new THREE.Vector3(spawnOffset, 0, 0),
+        rotation: new THREE.Euler(0, 0, 0),
+        velocity: new THREE.Vector3(0, 0, 0),
+        isLoaded: false,
+        color: robotColors[colorIndex],
+        isLeader: state.robots.length === 0,
+        targetWaypointIndex: 0,
+        assignedWaypoints: [],
+        ...robotData,
+      };
+      return { robots: [...state.robots, newRobot] };
+    });
+    return newRobotId;
+  },
+  removeRobot: (id) =>
+    set((state) => {
+      const filtered = state.robots.filter((r) => r.id !== id);
+      // If removing leader, assign new leader
+      if (filtered.length > 0 && state.robots.find((r) => r.id === id)?.isLeader) {
+        filtered[0].isLeader = true;
+      }
+      return {
+        robots: filtered,
+        selectedRobotId: state.selectedRobotId === id ? (filtered[0]?.id || null) : state.selectedRobotId,
+        pipRobotId: state.pipRobotId === id ? (filtered[0]?.id || null) : state.pipRobotId,
+      };
+    }),
+  updateRobot: (id, updates) =>
+    set((state) => ({
+      robots: state.robots.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r };
+          if (updates.position) updated.position = updates.position;
+          if (updates.rotation) updated.rotation = updates.rotation;
+          if (updates.velocity) updated.velocity = updates.velocity;
+          if (updates.isLoaded !== undefined) updated.isLoaded = updates.isLoaded;
+          if (updates.color) updated.color = updates.color;
+          if (updates.name) updated.name = updates.name;
+          if (updates.isLeader !== undefined) updated.isLeader = updates.isLeader;
+          if (updates.targetWaypointIndex !== undefined) updated.targetWaypointIndex = updates.targetWaypointIndex;
+          if (updates.assignedWaypoints) updated.assignedWaypoints = updates.assignedWaypoints;
+          return updated;
+        }
+        return r;
+      }),
+    })),
+  setSelectedRobotId: (id) => set({ selectedRobotId: id }),
+  setFormationMode: (mode) => set({ formationMode: mode }),
+  setPatrolMode: (mode) => set({ patrolMode: mode }),
+  setFormationSpacing: (spacing) => set({ formationSpacing: spacing }),
+  setRobotAsLeader: (id) =>
+    set((state) => ({
+      robots: state.robots.map((r) => ({
+        ...r,
+        isLeader: r.id === id,
+      })),
+    })),
+  getRobotById: (id): RobotInstance | undefined => {
+    const state = useSimulationStore.getState();
+    return state.robots.find((r: RobotInstance) => r.id === id);
+  },
+  distributeWaypoints: () =>
+    set((state) => {
+      const { robots, waypoints } = state;
+      if (robots.length === 0 || waypoints.length === 0) return state;
+
+      // Distribute waypoints evenly among robots
+      const waypointsPerRobot = Math.ceil(waypoints.length / robots.length);
+      const updatedRobots = robots.map((robot, index) => {
+        const startIdx = index * waypointsPerRobot;
+        const endIdx = Math.min(startIdx + waypointsPerRobot, waypoints.length);
+        const assigned = waypoints.slice(startIdx, endIdx).map((w) => w.id);
+        return {
+          ...robot,
+          assignedWaypoints: assigned,
+          targetWaypointIndex: 0,
+        };
+      });
+
+      return { robots: updatedRobots };
+    }),
+
+  // Picture-in-Picture
+  showPiP: false,
+  togglePiP: () => set((state) => ({ showPiP: !state.showPiP })),
+  pipRobotId: 'robot_1',
+  setPipRobotId: (id) => set({ pipRobotId: id }),
 }));

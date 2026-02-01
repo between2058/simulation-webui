@@ -28,16 +28,23 @@ const robotMaterial = new THREE.MeshStandardMaterial({
   envMapIntensity: 1,
 });
 
-const accentMaterial = new THREE.MeshStandardMaterial({
-  color: '#00d4ff',
-  emissive: '#00d4ff',
-  emissiveIntensity: 0.5,
-  roughness: 0.2,
-  metalness: 0.9,
-});
+// Create accent material with custom color
+function createAccentMaterial(color: string) {
+  return new THREE.MeshStandardMaterial({
+    color: color,
+    emissive: color,
+    emissiveIntensity: 0.5,
+    roughness: 0.2,
+    metalness: 0.9,
+  });
+}
+
+interface Go2ModelProps {
+  accentColor?: string;
+}
 
 // Unitree Go2 model from Google DeepMind mujoco_menagerie
-export function Go2Model() {
+export function Go2Model({ accentColor = '#00d4ff' }: Go2ModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const jointsRef = useRef<Go2Joints>({
     FR_hip: null, FR_thigh: null, FR_calf: null,
@@ -162,14 +169,14 @@ export function Go2Model() {
         {/* Sci-fi eyes */}
         <mesh position={[0.28, 0.05, 0.05]}>
           <sphereGeometry args={[0.015, 16, 16]} />
-          <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={3} />
+          <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={3} />
         </mesh>
         <mesh position={[0.28, 0.05, -0.05]}>
           <sphereGeometry args={[0.015, 16, 16]} />
-          <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={3} />
+          <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={3} />
         </mesh>
 
-        <pointLight position={[0, 0.1, 0]} intensity={0.3} color="#00d4ff" distance={2} />
+        <pointLight position={[0, 0.1, 0]} intensity={0.3} color={accentColor} distance={2} />
       </group>
 
       {/* Legs */}
@@ -216,7 +223,7 @@ export function Go2Model() {
                 <group position={[0, -0.213, 0]}>
                   {(() => {
                     const clone = footObj.clone();
-                    applyMaterial(clone, accentMaterial);
+                    applyMaterial(clone, createAccentMaterial(accentColor));
                     return <primitive object={clone} />;
                   })()}
                 </group>
@@ -230,7 +237,7 @@ export function Go2Model() {
 }
 
 // Simple fallback model (procedural geometry)
-export function Go2ModelSimple() {
+export function Go2ModelSimple({ accentColor = '#00d4ff' }: Go2ModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const jointsRef = useRef<Go2Joints>({
     FR_hip: null, FR_thigh: null, FR_calf: null,
@@ -277,7 +284,7 @@ export function Go2ModelSimple() {
       {/* Body */}
       <mesh position={[0, 0.35, 0]} castShadow>
         <boxGeometry args={[0.4, 0.12, 0.15]} />
-        <meshStandardMaterial color="#1a2a4a" roughness={0.3} metalness={0.8} emissive="#00d4ff" emissiveIntensity={0.05} />
+        <meshStandardMaterial color="#1a2a4a" roughness={0.3} metalness={0.8} emissive={accentColor} emissiveIntensity={0.05} />
       </mesh>
 
       {/* Head */}
@@ -289,11 +296,11 @@ export function Go2ModelSimple() {
       {/* Eyes */}
       <mesh position={[0.31, 0.39, 0.025]}>
         <sphereGeometry args={[0.012, 16, 16]} />
-        <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={3} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={3} />
       </mesh>
       <mesh position={[0.31, 0.39, -0.025]}>
         <sphereGeometry args={[0.012, 16, 16]} />
-        <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={3} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={3} />
       </mesh>
 
       {/* Legs */}
@@ -316,7 +323,7 @@ export function Go2ModelSimple() {
                 </mesh>
                 <mesh position={[0, -0.18, 0]}>
                   <sphereGeometry args={[0.022, 8, 8]} />
-                  <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={0.5} />
+                  <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.5} />
                 </mesh>
               </group>
             </group>
@@ -324,7 +331,7 @@ export function Go2ModelSimple() {
         </group>
       ))}
 
-      <pointLight position={[0, 0.5, 0]} intensity={0.3} color="#00d4ff" distance={2} />
+      <pointLight position={[0, 0.5, 0]} intensity={0.3} color={accentColor} distance={2} />
     </group>
   );
 }
