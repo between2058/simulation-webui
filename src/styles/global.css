@@ -71,12 +71,106 @@ body {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   position: relative;
   background: var(--color-bg-primary);
 }
 
-/* === Canvas Container === */
+/* === Canvas Area (New Layout) === */
+.canvas-area {
+  flex: 1;
+  position: relative;
+  margin-left: 340px; /* Width of MainControlPanel */
+  height: 100%;
+  z-index: var(--z-canvas);
+}
+
+/* === Viewport Info Bar === */
+.viewport-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: rgba(10, 20, 35, 0.9);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 10;
+}
+
+.viewport-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 1px;
+}
+
+.viewport-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.viewport-btn {
+  padding: 6px 12px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewport-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.4);
+  color: #00d4ff;
+}
+
+/* === Axis Indicator === */
+.axis-indicator {
+  position: absolute;
+  bottom: 60px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: rgba(10, 20, 35, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.axis-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.axis-dot.x {
+  background: #ff4444;
+  right: 8px;
+}
+
+.axis-dot.y {
+  background: #44ff44;
+  top: 8px;
+}
+
+.axis-dot.z {
+  background: #4444ff;
+  bottom: 8px;
+}
+
+/* === Canvas Container (Legacy) === */
 .canvas-container {
   flex: 1;
   position: relative;

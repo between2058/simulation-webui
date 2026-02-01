@@ -12,3 +12,4 @@ export { PathRecorder } from './PathRecorder';
 export { MuJoCoPanel } from './MuJoCoPanel';
 export { ModelUploadPanel } from './ModelUploadPanel';
 export { MultiRobotPanel } from './MultiRobotPanel';
+export { MainControlPanel } from './MainControlPanel';

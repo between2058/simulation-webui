@@ -1,57 +1,39 @@
-import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, MissionHistoryPanel, PatrolControls, PathRecorder, MuJoCoPanel, ModelUploadPanel, MultiRobotPanel } from './components/UI';
+import { StatusBar, MainControlPanel } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
-import { LidarDisplay } from './components/Sensors/LidarSensor';
 import { PictureInPicture } from './components/Camera/PictureInPicture';
 import './styles/global.css';
 
 function App() {
-  const handleSceneLoad = (file: File) => {
-    console.log('Loading scene:', file.name);
-    // Scene loading will be handled by the 3D canvas
-  };
-
   return (
     <div className="app-container">
-      {/* Header */}
-      <Header />
+      {/* Main Control Panel (Left Side - Tabbed Interface) */}
+      <MainControlPanel />
 
-      {/* Main Content */}
-      <main className="canvas-container">
+      {/* Main Content - 3D Canvas Area */}
+      <main className="canvas-area">
         {/* 3D Canvas */}
         <SimulationCanvas />
 
-        {/* Left Panel Stack - Scene & Models */}
-        <div className="left-panel-stack">
-          <ScenePanel onSceneLoad={handleSceneLoad} />
-          <ModelUploadPanel />
-        </div>
-
-        {/* Scene Editor (Bottom Left) */}
-        <SceneEditor />
-
-        {/* Patrol Controls (Left Middle) */}
-        <div className="patrol-panel">
-          <PatrolControls />
-          <MissionStats />
-          <PathRecorder />
-          <LidarDisplay />
-        </div>
-
-        {/* Mission History (Bottom Left) */}
-        <MissionHistoryPanel />
-
-        {/* Right Panel Stack - Controls & Robots */}
-        <div className="right-panel-stack">
-          <ControlPanel />
-          <MultiRobotPanel />
-          <MuJoCoPanel />
-        </div>
-
         {/* Picture-in-Picture Camera View */}
-        <PictureInPicture position="top-left" />
+        <PictureInPicture position="top-right" />
 
-        {/* Grid Background Effect */}
-        <div className="grid-bg" />
+        {/* Viewport Info */}
+        <div className="viewport-info">
+          <span className="viewport-label">GO2 (QUADRUPED)</span>
+          <div className="viewport-actions">
+            <button className="viewport-btn">SHOW FRAMES</button>
+            <button className="viewport-btn">FOLLOW ROBOT</button>
+            <button className="viewport-btn">ADD OBSTACLE</button>
+            <button className="viewport-btn">CLEAR</button>
+          </div>
+        </div>
+
+        {/* Axis Indicator */}
+        <div className="axis-indicator">
+          <div className="axis-dot x" />
+          <div className="axis-dot y" />
+          <div className="axis-dot z" />
+        </div>
       </main>
 
       {/* Status Bar */}
