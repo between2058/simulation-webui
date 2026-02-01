@@ -16,6 +16,7 @@ import { Obstacles, getObstacleBounds } from './Obstacles';
 import { PathVisualization } from './PathVisualization';
 import { Waypoints } from './Waypoints';
 import { TerrainZones } from './TerrainZones';
+import { PostProcessing } from './PostProcessing';
 import { LidarSensor } from '../Sensors/LidarSensor';
 import { createPathfindingGrid, findPath, type PathfindingGrid } from '../../utils/pathfinding';
 import './SimulationCanvas.css';
@@ -181,6 +182,9 @@ function SceneContent({ targetPosition, path, onTargetSet, onPlaceObstacle, onAd
           maxPolarAngle={Math.PI / 2 - 0.1}
         />
       )}
+
+      {/* Post-processing effects */}
+      <PostProcessing />
 
       {/* Stats */}
       {showStats && <Stats className="stats-panel" />}
