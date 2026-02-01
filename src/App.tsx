@@ -1,4 +1,4 @@
-import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls, PathRecorder } from './components/UI';
+import { Header, ControlPanel, StatusBar, ScenePanel, SceneEditor, MissionStats, PatrolControls, PathRecorder, MuJoCoPanel } from './components/UI';
 import { SimulationCanvas } from './components/Scene';
 import { LidarDisplay } from './components/Sensors/LidarSensor';
 import './styles/global.css';
@@ -35,6 +35,11 @@ function App() {
 
         {/* Control Panel (Right) */}
         <ControlPanel />
+
+        {/* MuJoCo Physics Panel (Right Bottom) */}
+        <div className="physics-panel">
+          <MuJoCoPanel />
+        </div>
 
         {/* Grid Background Effect */}
         <div className="grid-bg" />

@@ -131,3 +131,11 @@ body {
   max-height: calc(100% - 200px);
   overflow-y: auto;
 }
+
+/* === Physics Panel === */
+.physics-panel {
+  position: absolute;
+  right: 16px;
+  bottom: 60px;
+  z-index: var(--z-panel);
+}
