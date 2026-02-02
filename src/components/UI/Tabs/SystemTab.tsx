@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSimulationStore } from '../../../stores/simulationStore';
+import { MUJOCO_CONFIG, UI_CONFIG } from '../../../config';
 import type { RobotInstance } from '../../../stores/simulationStore';
 
 export function SystemTab() {
@@ -23,7 +24,7 @@ export function SystemTab() {
   } = useSimulationStore();
 
   const [mujocoStatus, setMujocoStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-  const [mujocoUrl, setMujocoUrl] = useState('ws://localhost:8765');
+  const [mujocoUrl, setMujocoUrl] = useState(MUJOCO_CONFIG.DEFAULT_URL);
 
   const handleConnect = () => {
     setMujocoStatus('connecting');
@@ -279,7 +280,7 @@ export function SystemTab() {
         <div className="system-info">
           <div className="info-row">
             <span className="info-label">Version</span>
-            <span className="info-value">1.0.0</span>
+            <span className="info-value">{UI_CONFIG.VERSION}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Renderer</span>

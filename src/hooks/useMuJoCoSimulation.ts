@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSimulationStore } from '../stores/simulationStore';
+import { MUJOCO_CONFIG } from '../config';
 import * as THREE from 'three';
 
 // Types matching Python backend
@@ -42,8 +43,8 @@ interface MuJoCoSimulationState {
   error: string | null;
 }
 
-const WS_URL = 'ws://localhost:8765/ws';
-const RECONNECT_DELAY = 3000;
+const WS_URL = MUJOCO_CONFIG.WS_URL;
+const RECONNECT_DELAY = MUJOCO_CONFIG.RECONNECT_DELAY;
 
 export function useMuJoCoSimulation() {
   const wsRef = useRef<WebSocket | null>(null);
